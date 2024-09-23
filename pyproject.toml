@@ -1,0 +1,16 @@
+[project]
+name = "docuxtract"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "instructor>=1.4.3",
+    "llama-index-embeddings-huggingface>=0.3.1",
+    "llama-index-llms-mistralai>=0.2.5",
+    "llama-index-llms-ollama>=0.3.2",
+    "llama-index>=0.11.12",
+    "openai>=1.47.0",
+    "pillow>=10.4.0",
+    "pytesseract>=0.3.13",
+]

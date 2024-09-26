@@ -1,21 +1,28 @@
+from time import time
 from PIL import Image
 import pytesseract
-from llama_index.core import SimpleDirectoryReader, VectorStoreIndex, Settings, Document
-from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+from llama_index.core import Settings
 from llama_index.llms.ollama import Ollama
-from llama_index.llms.mistralai import MistralAI
-import xml.etree.ElementTree as ET
-
-from instructor import Instructor  # Supondo que haja um módulo chamado 'Instructor'
-import instructor
-from openai import OpenAI
+from llama_index.core.program import LLMTextCompletionProgram
+from llama_index.core.output_parsers import PydanticOutputParser
 from pydantic import BaseModel, Field
+import xml.etree.ElementTree as ET
 from typing import List
 
-# Configuração do Tesseract para OCR
-# pytesseract.pytesseract.tesseract_cmd = (
-# r"/usr/bin/tesseract"  # Caminho para o Tesseract
-# )
+
+class InvoiceItem(BaseModel):
+    id: int
+    description: str
+    quantity: int
+    rate: float
+
+
+class Invoice(BaseModel):
+    due_date: str = Field()
+    bill_to_name: str = Field()
+    items: List[InvoiceItem] = Field(
+        description="Invoice items described in the invoice file."
+    )
 
 
 # Função para extração de texto usando OCR
@@ -31,83 +38,51 @@ def extract_text_via_ocr(image_path):
 
 
 # Função para interpretar o texto extraído usando um modelo LLM (exemplo com LlamaIndex)
-def interpret_text_with_llm(path, query_text):
-    # Inicializar leitor de dados e o índice do LLM (LlamaIndex, por exemplo)
-    # document = Document(text=text)
-    documents = SimpleDirectoryReader(input_files=[path]).load_data()
-    index = VectorStoreIndex.from_documents(documents=documents)
+def interpret_text_with_llm(
+    extracted_text: str, query_text: str, model: str
+) -> BaseModel:
+    start_time = time()
 
-    # Prevendo com LLM
-    query_engine = index.as_query_engine()
-    response = query_engine.query(query_text)
+    Settings.llm = Ollama(model=model, request_timeout=360.0, json_mode=True)
 
-    print(f"Interpretação do LLM: {response}")
-
-    return response
-
-
-class InvoiceItem(BaseModel):
-    name: str
-    qty: int
-    rate: int
-
-
-class Invoice(BaseModel):
-    due_date: str
-    bill_to_name: str
-    items: List[InvoiceItem] = Field(..., description="A list of invoice items")
-
-
-# Função para estruturar dados interpretados usando o Instructor
-def structure_interpreted_data(extracted_text, query_text):
-    # Exemplo de estruturação usando 'Instructor' (ajuste de acordo com a documentação real)
-    client = instructor.from_openai(
-        OpenAI(
-            base_url="http://localhost:11434/v1",
-            api_key="llama2:7b",  # required, but unused
-        ),
-        mode=instructor.Mode.JSON,
+    prog = LLMTextCompletionProgram.from_defaults(
+        output_parser=PydanticOutputParser(output_cls=Invoice),
+        prompt_template_str="""
+        You are responsible for extracting the required query from an XML file and output the results as a JSON\
+        XML: {xml}\
+        query: {query}
+        """,
+        verbose=True,
     )
+    result = prog(xml=extracted_text, query=query_text)
 
-    structured_data = client.chat.completions.create(
-        model="llama2:7b",
-        messages=[
-            {"role": "system", "content": extracted_text},
-            {
-                "role": "user",
-                "content": query_text,
-            },
-        ],
-        response_model=Invoice,
-    )
+    end_time = time()
+    print(f"Elapsed time of {model} = {end_time - start_time} seconds")
 
-    print(f"Dados Estruturados: {structured_data.model_dump_json(indent=2)}")
-
-    return structured_data
+    return result
 
 
 # Pipeline de extração, interpretação e estruturação
-def process_document_pipeline(image_path, query_text):
+def process_document_pipeline(image_path, query_text) -> str:
     # 1. Extração de texto via OCR
     # extracted_text = extract_text_via_ocr(image_path)
     extracted_text = ET.tostring(ET.parse(image_path).getroot(), encoding="unicode")
 
-    # 2. Interpretação dos dados extraídos via LLM
-    interpreted_text = interpret_text_with_llm(image_path, query_text)
+    interpreted_text: BaseModel = interpret_text_with_llm(
+        extracted_text, query_text, "llama3.1:8b"
+    )
 
-    # 3. Estruturação das informações extraídas
-    structured_data = structure_interpreted_data(extracted_text, query_text)
+    interpreted_text: BaseModel = interpret_text_with_llm(
+        extracted_text, query_text, "qwen2.5:7b"
+    )
 
-    return structured_data
+    return interpreted_text.model_dump_json(indent=2)
 
 
 # Testar a pipeline com uma imagem de documento
 if __name__ == "__main__":
-    Settings.embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-base-en-v1.5")
-    Settings.llm = Ollama(model="llama2:7b", request_timeout=360.0)
-
     image_path = "invoice.xml"
     resultado = process_document_pipeline(
-        image_path, "Get the Due date, Bill to name and items from the invoice"
+        image_path, "Get the Due date, Bill to name and invoice items"
     )
     print(f"Resultado Final da Pipeline: {resultado}")

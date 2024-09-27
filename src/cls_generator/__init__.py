@@ -1,22 +1,25 @@
 from pydantic import BaseModel, create_model
-from typing import Any, Type
+from typing import Any, Type, Union
 
 
-def create_cls(name: str, attributes: dict[str, Any]) -> Type[BaseModel]:
+def create_cls(
+    name: str, attributes: Union[dict[str, Any], list[Any]]
+) -> Type[BaseModel]:
     attrs = attributes_to_model_fields(attributes)
     model = create_model(name, **attrs)
     return model
 
 
-def attributes_to_model_fields(schema: dict[str, Any]) -> Any:
+def attributes_to_model_fields(schema: Union[dict[str, Any], list[Any]]) -> Any:
     model_fields: dict[str, tuple[type, Any]] = {}
 
     if isinstance(schema, dict):
         for key, value in schema.items():
             model_fields[key] = create_model_tuple(key, value)
 
-    if isinstance(schema, list):
-        model_fields[key] = create_model_tuple(key, schema[0])
+    # Refactor
+    # if isinstance(schema, list):
+    #     model_fields[key] = create_model_tuple(key, schema[0])
 
     return model_fields
 

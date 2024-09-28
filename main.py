@@ -1,10 +1,10 @@
 from dotenv import load_dotenv
-from typing import Any, Optional, Union
-from fastapi import FastAPI, UploadFile, status
+from typing import Annotated, Any, Optional, Union
+from fastapi import Body, FastAPI, UploadFile, status
 from fastapi.concurrency import asynccontextmanager
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from src.mongodb.schema_collection import SchemaModel
+from src.mongodb.schema_collection import JsonSchema, SchemaModel
 from src.mongodb import SchemaCollection, load_collection
 from src.cls_generator import create_cls
 from src.pipelines import rag_pipeline
@@ -36,11 +36,11 @@ schema_collection = SchemaCollection()
 class SchemaDto(BaseModel):
     id: Optional[str] = None
     name: str
-    json_schema: Union[dict[str, Any], list[Any]]
+    json_schema: JsonSchema
 
 
 @app.post("/schema/validate")
-def validate_schema(schema: Union[dict[str, Any], list[Any]]):
+def validate_schema(schema: Annotated[JsonSchema, Body()]):
     """
     Example of valid schema:
     ```

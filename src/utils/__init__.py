@@ -1,5 +1,5 @@
 from typing import Any, Union
-from mongodb.schema_collection import JsonSchema, SchemaField
+from src.mongodb.schema_collection import JsonSchema, SchemaField
 
 
 def remove_key_recursive(key: str, schema: dict[str, Any]) -> dict[str, Any]:
@@ -13,7 +13,7 @@ def remove_key_recursive(key: str, schema: dict[str, Any]) -> dict[str, Any]:
     return schema
 
 
-def is_valid_schema(schema: JsonSchema) -> bool:
+def is_valid_schema(schema: Union[SchemaField, JsonSchema]) -> bool:
     """
     Example of valid schema:
      ```

@@ -1,6 +1,6 @@
-from typing import Any, Literal, Union
+from typing import Literal, Union
 from beanie import Document, Indexed
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class SchemaField(BaseModel):
@@ -14,7 +14,14 @@ class SchemaField(BaseModel):
     required: bool
 
 
-JsonSchema = Union[dict[str, Union[SchemaField, Any]], list[Union[SchemaField, Any]]]
+type JsonSchema = Union[
+    dict[
+        str,
+        Union[SchemaField, JsonSchema, list[SchemaField], list[JsonSchema]],
+    ],
+    list[SchemaField],
+    list[JsonSchema],
+]
 
 
 class SchemaModel(Document):

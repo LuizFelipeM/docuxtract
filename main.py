@@ -4,6 +4,8 @@ from fastapi import Body, FastAPI, Query, UploadFile, status
 from fastapi.concurrency import asynccontextmanager
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from src.S3 import S3Client
+from src.mongodb.file_collection import FileCollection
 from src.ocr import extract_markup
 from src.mongodb.schema_collection import JsonSchema, SchemaModel
 from src.mongodb import SchemaCollection, load_collection
@@ -29,13 +31,30 @@ app = FastAPI(
 )
 
 
+file_collection = FileCollection()
 schema_collection = SchemaCollection()
+s3_client = S3Client()
 
 
 class SchemaDto(BaseModel):
     id: Optional[str] = None
     name: str
     json_schema: JsonSchema
+
+
+@app.post("/bucket")
+def create_bucket() -> None:
+    s3_client.create_butcket()
+
+
+@app.post("/upload")
+async def upload_file(file: UploadFile) -> None:
+    s3_client.upload_file(file.filename, await file.read())
+
+
+@app.post("/download")
+async def download_file(name: str) -> None:
+    s3_client.download_file(name)
 
 
 @app.post(

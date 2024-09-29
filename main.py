@@ -23,8 +23,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Docuxtract API",
-    summary="A simple way of extracting document data",
-    description="This API is intended to be easy for developers to extract value from document and add value using it",
+    summary="A simple way of extracting document data.",
+    description="This API is intended to be easy for developers to add value with document extraction tools.",
     lifespan=lifespan,
 )
 

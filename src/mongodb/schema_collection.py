@@ -51,13 +51,13 @@ class JsonSchema(BaseModel):
             "properties": [
                 {
                     "name": "due_date",
-                    "type": "string",
+                    "type": "datetime",
                     "required": true
                 },
                 {
                     "name": "bill_to_name",
                     "type": "string",
-                    "required": true
+                    "required": false
                 },
                 {
                     "name": "items",

@@ -1,7 +1,6 @@
 import xml.etree.ElementTree as ET
 import json
 from llm import interpret_text
-from src.cls_generator import create_cls
 
 
 # class InvoiceItem(BaseModel):

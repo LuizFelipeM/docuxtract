@@ -1,13 +1,12 @@
 from dotenv import load_dotenv
-from typing import Annotated, Any, Optional, Union
-from fastapi import Body, FastAPI, UploadFile, status
+from typing import Optional
+from fastapi import FastAPI, UploadFile, status
 from fastapi.concurrency import asynccontextmanager
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from src.ocr import extract_markup
 from src.mongodb.schema_collection import JsonSchema, SchemaModel
 from src.mongodb import SchemaCollection, load_collection
-from src.cls_generator import create_cls
 from src.pipelines import rag_pipeline
 
 

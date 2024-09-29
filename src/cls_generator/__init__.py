@@ -30,7 +30,6 @@ def create_model_tuple(
     return (
         get_model_type(key, value),
         Field(
-            ...,
             default=(
                 PydanticUndefined
                 if isinstance(value, SchemaField) and value.required

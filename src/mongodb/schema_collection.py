@@ -1,21 +1,42 @@
 from __future__ import annotations
-from typing import Any, Literal, Optional, Union
+from typing import Any, Literal, Optional
 from beanie import Document, Indexed
 from pydantic import BaseModel, Field, create_model
 from pydantic_core import PydanticUndefined
 
 
 class JsonSchema(BaseModel):
-    """ """
+    """
+    The schema definition for JSON output validation using Pydantic dynamic model class generation
+    """
 
     name: str
+    """
+    Define the field name. Will be used as JSON keys when the output JSON is generated.
+    """
+
     type: Literal["datetime", "string", "int", "float", "bool", "object", "array"]
+    """
+    Define the field type
+    """
+
     required: bool
+    """
+    Define if the field is required making the field thrown an error if the field is required and not filled
+    """
+
     properties: Optional[list[JsonSchema]] = Field(None)
+    """
+    Properties are used to define the properties within an `object` type JsonSchema
+
+    **SHOULD NOT** be used in other JsonSchema's types besides `object` type
+    """
+
     items: Optional[JsonSchema] = Field(None)
     """
-    Items is used to define the type of items within a JsonSchema `array` type
-    SHOULD NOT be used in other JsonSchema types beyonf the `array` type
+    Items are used to define the type of items within an `array` type JsonSchema
+
+    **SHOULD NOT** be used in other JsonSchema's types besides `array` type
     """
 
     @property
@@ -85,6 +106,9 @@ class JsonSchema(BaseModel):
         return self.properties == None and self.items == None
 
     def as_model(self) -> type[BaseModel]:
+        """
+        Convert the JsonSchema into a Pydantic dynamic model class for field validation
+        """
         attrs = self.attributes_to_model_fields()
         return create_model(self.name, **attrs)
 
@@ -142,4 +166,3 @@ class SchemaCollection:
 
     async def has(self, name: str) -> bool:
         return await SchemaModel.find_one(SchemaModel.name == name) != None
-        # return await self.session.schemas.count_documents({"name": name}) != 0

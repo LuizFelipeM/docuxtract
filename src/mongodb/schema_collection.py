@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Literal, Union
+from typing import Any, Literal, Optional, Union
 from beanie import Document, Indexed
 from pydantic import BaseModel, Field, create_model
 from pydantic_core import PydanticUndefined
@@ -11,8 +11,12 @@ class JsonSchema(BaseModel):
     name: str
     type: Literal["datetime", "string", "int", "float", "bool", "object", "array"]
     required: bool
-    properties: dict[str, JsonSchema] | None = Field(None)
-    items: JsonSchema | None = Field(None)
+    properties: Optional[list[JsonSchema]] = Field(None)
+    items: Optional[JsonSchema] = Field(None)
+    """
+    Items is used to define the type of items within a JsonSchema `array` type
+    SHOULD NOT be used in other JsonSchema types beyonf the `array` type
+    """
 
     @property
     def is_valid(self) -> bool:
@@ -23,18 +27,18 @@ class JsonSchema(BaseModel):
             "name": "invoice",
             "type": "object",
             "required": true,
-            "properties": {
-                "due_date": {
+            "properties": [
+                {
                     "name": "due_date",
                     "type": "string",
                     "required": true
                 },
-                "bill_to_name": {
+                {
                     "name": "bill_to_name",
                     "type": "string",
                     "required": true
                 },
-                "items": {
+                {
                     "name": "items",
                     "type": "array",
                     "required": true,
@@ -42,37 +46,37 @@ class JsonSchema(BaseModel):
                         "name": "invoice_items",
                         "type": "object",
                         "required": true,
-                        "properties": {
-                            "id": {
+                        "properties": [
+                            {
                                 "name": "id",
                                 "type": "int",
                                 "required": true
                             },
-                            "description": {
+                            {
                                 "name": "description",
                                 "type": "string",
                                 "required": true
                             },
-                            "quantity": {
+                            {
                                 "name": "quantity",
                                 "type": "int",
                                 "required": true
                             },
-                            "rate": {
+                            {
                                 "name": "rate",
                                 "type": "float",
                                 "required": true
                             }
-                        }
+                        ]
                     }
                 }
-            }
+            ]
         }
         ```
         """
         if self.type == "object":
             return self.properties != None and all(
-                [value.is_valid for _, value in self.properties.items()]
+                [prop.is_valid for prop in self.properties]
             )
 
         if self.type == "array":
@@ -88,7 +92,7 @@ class JsonSchema(BaseModel):
         model_fields: dict[str, tuple[type, Any]] = {}
 
         if self.type == "object":
-            for _, prop in self.properties.items():
+            for prop in self.properties:
                 model_fields[prop.name] = prop.create_model_tuple()
         else:
             model_fields[self.name] = self.create_model_tuple()

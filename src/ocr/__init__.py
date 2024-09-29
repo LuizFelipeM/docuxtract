@@ -11,7 +11,7 @@ async def extract_markup(file: UploadFile) -> str:
 
         if file.content_type.startswith("image/"):
             image = Image.open(BytesIO(await file.read()))
-            e = pytesseract.image_to_alto_xml(image)
+            e = pytesseract.image_to_alto_xml(image).decode("utf-8")
             return e
 
         raise f"File type {file.content_type} isn't supported"

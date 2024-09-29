@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<invoice>
+    <invoice_number>9028</invoice_number>
+    <invoice_date>2024-09-23</invoice_date>
+    <due_date>2024-09-27</due_date>
+
+    <bill_to>
+        <company>BTG Pactual</company>
+        <address>St. Lincon 102</address>
+        <city>Wellington</city>
+        <country>Poland</country>
+        <TRN>Avocado</TRN>
+    </bill_to>
+
+    <ship_to>
+        <name>Test Luiz</name>
+        <address>St. Abraham 09</address>
+        <city>Washington</city>
+        <state>DC</state>
+        <country>U.S.A</country>
+        <TRN>Avocado</TRN>
+    </ship_to>
+
+    <items>
+        <item>
+            <id>1</id>
+            <description>Brochure Design</description>
+            <quantity>2</quantity>
+            <rate>100.00</rate>
+            <vat>12</vat>
+            <amount>200.00</amount>
+        </item>
+        <item>
+            <id>2</id>
+            <description>Agenda</description>
+            <quantity>290</quantity>
+            <rate>20.00</rate>
+            <vat>12</vat>
+            <amount>5800.00</amount>
+        </item>
+        <item>
+            <id>3</id>
+            <description>Clip</description>
+            <quantity>200000</quantity>
+            <rate>0.15</rate>
+            <vat>1</vat>
+            <amount>30000.00</amount>
+        </item>
+        <item>
+            <id>4</id>
+            <description>Smartphone</description>
+            <quantity>1</quantity>
+            <rate>2000.00</rate>
+            <vat>24</vat>
+            <amount>2000.00</amount>
+        </item>
+    </items>
+
+    <totals>
+        <sub_total>38000.00</sub_total>
+        <total_vat>1500.00</total_vat>
+        <total>39500.00</total>
+    </totals>
+
+    <notes>
+        <note>It was great doing business with you.</note>
+    </notes>
+
+    <terms>
+        <term>Please make the payment by the due date.</term>
+    </terms>
+</invoice>

@@ -4,6 +4,7 @@ from fastapi import Body, FastAPI, UploadFile, status
 from fastapi.concurrency import asynccontextmanager
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from src.ocr import extract_markup
 from src.mongodb.schema_collection import JsonSchema, SchemaModel
 from src.mongodb import SchemaCollection, load_collection
 from src.cls_generator import create_cls
@@ -39,7 +40,7 @@ class SchemaDto(BaseModel):
 
 
 @app.post("/schema/validate")
-def validate_schema(schema: JsonSchema):
+def validate_schema(schema: JsonSchema) -> bool:
     return schema.is_valid
 
 
@@ -66,6 +67,11 @@ async def create_schema(dto: SchemaDto):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={"message": str(ex)},
         )
+
+
+@app.post("/ocr")
+async def ocr(file: UploadFile):
+    return await extract_markup(file)
 
 
 @app.post("/process")

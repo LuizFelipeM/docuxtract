@@ -8,7 +8,6 @@ from src.mongodb.schema_collection import JsonSchema, SchemaModel
 from src.mongodb import SchemaCollection, load_collection
 from src.cls_generator import create_cls
 from src.pipelines import rag_pipeline
-from src.utils import is_valid_schema
 
 
 load_dotenv()
@@ -40,49 +39,14 @@ class SchemaDto(BaseModel):
 
 
 @app.post("/schema/validate")
-def validate_schema(schema: Annotated[JsonSchema, Body()]):
-    """
-    Example of valid schema:
-    ```
-    {
-        "due_date": {
-            "type": "str",
-            "required": true
-        },
-        "bill_to_name": {
-            "type": "str",
-            "required": true
-        },
-        "items": [
-            {
-                "id": {
-                    "type": "int",
-                    "required": true
-                },
-                "description": {
-                    "type": "str",
-                    "required": true
-                },
-                "quantity": {
-                    "type": "int",
-                    "required": true
-                },
-                "rate": {
-                    "type": "float",
-                    "required": true
-                }
-            }
-        ]
-    }
-    ```
-    """
-    return is_valid_schema(schema)
+def validate_schema(schema: JsonSchema):
+    return schema.is_valid
 
 
 @app.put("/schema", status_code=status.HTTP_204_NO_CONTENT)
 async def create_schema(dto: SchemaDto):
     try:
-        if not is_valid_schema(dto.json_schema):
+        if not dto.json_schema.is_valid:
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 content={"message": "Invalid schema"},
@@ -94,7 +58,9 @@ async def create_schema(dto: SchemaDto):
                 content={"message": "Unsuported update operation"},
             )
 
-        await schema_collection.insert(SchemaModel(**dto.model_dump()))
+        await schema_collection.insert(
+            SchemaModel(id=dto.id, name=dto.name, json_schema=dto.json_schema)
+        )
     except Exception as ex:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -122,7 +88,7 @@ async def process(
             )
 
         model = await schema_collection.find_by_name(n)
-        output_cls = create_cls(n, model.json_schema)
+        output_cls = model.json_schema.as_model()
         result = await rag_pipeline(file, q, output_cls)
         return JSONResponse(status_code=status.HTTP_200_OK, content=result.model_dump())
     except Exception as ex:

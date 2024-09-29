@@ -1,7 +1,7 @@
 from typing import Any, Type, Union
 from pydantic import BaseModel, create_model, Field
 from pydantic_core import PydanticUndefined
-from src.mongodb.schema_collection import JsonSchema, SchemaField
+from src.mongodb.schema_collection import JsonSchema
 
 
 def create_cls(name: str, attributes: JsonSchema) -> Type[BaseModel]:
@@ -24,33 +24,31 @@ def attributes_to_model_fields(schema: JsonSchema) -> Any:
     return model_fields
 
 
-def create_model_tuple(
-    key: str, value: Union[SchemaField, JsonSchema]
-) -> tuple[type, Any]:
+def create_model_tuple(key: str, value: JsonSchema) -> tuple[type, Any]:
     return (
         get_model_type(key, value),
         Field(
             default=(
                 PydanticUndefined
-                if isinstance(value, SchemaField) and value.required
+                if isinstance(value, JsonSchema) and value.required
                 else None
             ),
         ),
     )
 
 
-def get_model_type(key: str, value: Union[SchemaField, JsonSchema]) -> type:
+def get_model_type(key: str, value: JsonSchema) -> type:
     if isinstance(value, dict):
         return create_cls(key, value)
 
     if isinstance(value, list):
         return list[get_model_type(key, value[0])]
 
-    if not isinstance(value, SchemaField):
+    if not isinstance(value, JsonSchema):
         raise f"Unsupported type of property {key}"
 
     match value.type:
-        case "datetime" | "str":
+        case "datetime" | "string":
             return str
         case "int":
             return int

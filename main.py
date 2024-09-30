@@ -1,14 +1,16 @@
+from io import BytesIO
+import os
 from dotenv import load_dotenv
 from typing import Any, Optional
-from fastapi import Body, FastAPI, Query, UploadFile, status
+from fastapi import Body, FastAPI, HTTPException, Query, UploadFile
 from fastapi.concurrency import asynccontextmanager
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel
-from src.S3 import S3Client
-from src.mongodb.file_collection import FileCollection
+from src.S3 import S3Client, S3Config, S3File
 from src.ocr import extract_markup
+from src.mongodb.file_collection import FileModel
 from src.mongodb.schema_collection import JsonSchema, SchemaModel
-from src.mongodb import SchemaCollection, load_collection
+from src.mongodb import load_collection, MongoConfig, SchemaCollection, FileCollection
 from src.pipelines import rag_pipeline
 
 
@@ -18,7 +20,9 @@ load_dotenv()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Execute before application starts
-    await load_collection()
+    await load_collection(
+        MongoConfig(user=os.getenv("DB_USER"), password=os.getenv("DB_PASSWORD"))
+    )
     yield
     # Execute after the application has finished
 
@@ -33,7 +37,16 @@ app = FastAPI(
 
 file_collection = FileCollection()
 schema_collection = SchemaCollection()
-s3_client = S3Client()
+
+s3_client = S3Client(
+    S3Config(
+        url=os.getenv("S3_URL"),
+        access_key=os.getenv("S3_ACESS_KEY"),
+        secret_access_key=os.getenv("S3_SECRET_KEY"),
+        bucket=os.getenv("S3_BUCKET"),
+        region=os.getenv("S3_REGION"),
+    )
+)
 
 
 class SchemaDto(BaseModel):
@@ -49,18 +62,33 @@ def create_bucket() -> None:
 
 @app.post("/upload")
 async def upload_file(file: UploadFile) -> None:
-    s3_client.upload_file(file.filename, await file.read())
+    _, ext = os.path.splitext(file.filename)
+    content = await file.read()
+    s3_file = S3File(ext=ext, content=content)
+
+    if not await file_collection.has(s3_file.key):
+        s3_client.upload_file(s3_file)
+        await file_collection.insert(FileModel(name=file.filename, key=s3_file.key))
 
 
 @app.post("/download")
-async def download_file(name: str) -> None:
-    s3_client.download_file(name)
+async def download_file(key: str) -> StreamingResponse:
+    try:
+        file = await file_collection.find_by_key(key)
+        s3_file = s3_client.download_file(file.key)
+        return StreamingResponse(
+            BytesIO(s3_file.content),
+            media_type="application/octet-stream",
+            headers={"Content-Disposition": f"attachment; filename={file.name}"},
+        )
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=str(ex))
 
 
 @app.post(
     "/schema/validate",
     responses={
-        status.HTTP_200_OK: {
+        "200": {
             "description": "`true` if the schema is valid or `false` If the schema is not valid.",
             "content": {"application/json": {"example": "true"}},
         }
@@ -75,7 +103,7 @@ def validate_schema(
     return schema.is_valid
 
 
-@app.put("/schema", status_code=status.HTTP_204_NO_CONTENT)
+@app.put("/schema", status_code=204)
 async def create_schema(
     schema: SchemaDto = Body(..., description="The schema to be created or updated.")
 ) -> None:
@@ -85,13 +113,13 @@ async def create_schema(
     try:
         if not schema.json_schema.is_valid:
             return JSONResponse(
-                status_code=status.HTTP_400_BAD_REQUEST,
+                status_code=400,
                 content={"message": "Invalid schema"},
             )
 
         if schema.id != None:
             return JSONResponse(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                status_code=500,
                 content={"message": "Unsuported update operation"},
             )
 
@@ -100,7 +128,7 @@ async def create_schema(
         )
     except Exception as ex:
         return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code=500,
             content={"message": str(ex)},
         )
 
@@ -108,7 +136,7 @@ async def create_schema(
 @app.post(
     "/ocr",
     responses={
-        status.HTTP_200_OK: {
+        "200": {
             "description": "The extracted file content if the file is processed sucessfully.",
             "content": {
                 "application/json": {
@@ -130,7 +158,7 @@ async def ocr(file: UploadFile) -> str:
 @app.post(
     "/process",
     responses={
-        status.HTTP_200_OK: {
+        "200": {
             "description": "The processed query data extraction on top of the file in the specified schema `n` format.",
             "content": {
                 "application/json": {
@@ -172,22 +200,22 @@ async def process(
     try:
         if not q:
             return JSONResponse(
-                status_code=status.HTTP_400_BAD_REQUEST,
+                status_code=400,
                 content={"message": f"Cannot query with empty query string"},
             )
 
         if not n or not (await schema_collection.has(n)):
             return JSONResponse(
-                status_code=status.HTTP_400_BAD_REQUEST,
+                status_code=400,
                 content={"message": f"Schema {n} not found or not created"},
             )
 
         model = await schema_collection.find_by_name(n)
         output_cls = model.json_schema.as_model()
         result = await rag_pipeline(file, q, output_cls)
-        return JSONResponse(status_code=status.HTTP_200_OK, content=result.model_dump())
+        return JSONResponse(status_code=200, content=result.model_dump())
     except Exception as ex:
         return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code=500,
             content={"message": str(ex)},
         )

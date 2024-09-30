@@ -1,20 +1,24 @@
-import asyncio
 import os
 from beanie import init_beanie
-from typing import Literal
-from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
+from motor.motor_asyncio import AsyncIOMotorClient
+from pydantic import BaseModel
+
+from .file_collection import FileCollection, FileModel
 from .schema_collection import SchemaCollection, SchemaModel
 
-__all__ = ["SchemaCollection", "load_collection"]
+__all__ = ["SchemaCollection", "FileCollection", "load_collection", "MongoConfig"]
 
 
-user = os.getenv("DB_USER")
-password = os.getenv("DB_PASSWORD")
-
-client = AsyncIOMotorClient(
-    f"mongodb+srv://{user}:{password}@cluster0.wo4osnm.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-)
+class MongoConfig(BaseModel):
+    user: str
+    password: str
 
 
-async def load_collection() -> None:
-    await init_beanie(database=client.Template, document_models=[SchemaModel])
+async def load_collection(config: MongoConfig) -> None:
+    client = AsyncIOMotorClient(
+        f"mongodb+srv://{config.user}:{config.password}@cluster0.wo4osnm.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+    )
+
+    await init_beanie(
+        database=client.Template, document_models=[SchemaModel, FileModel]
+    )

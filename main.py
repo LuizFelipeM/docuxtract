@@ -1,15 +1,18 @@
-from io import BytesIO
 import os
+from io import BytesIO
 from dotenv import load_dotenv
-from typing import Any, Optional
-from fastapi import Body, FastAPI, HTTPException, Query, UploadFile
+from typing import Any
+from fastapi import Body, FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.concurrency import asynccontextmanager
 from fastapi.responses import JSONResponse, StreamingResponse
-from pydantic import BaseModel
-from src.S3 import S3Client, S3Config, S3File
+from src.entities.file_entity import FileEntity
+from src.entities.s3_file_entity import S3FileEntity
+from src.entities.json_schema_entity import JsonSchemaEntity
+from src.entities.schema_entity import SchemaEntity
+from src.dtos.json_schema_dto import JsonSchemaDto
+from src.dtos.schema_dto import SchemaDto
+from src.S3 import S3Client, S3Config
 from src.ocr import extract_markup
-from src.mongodb.file_collection import FileModel
-from src.mongodb.schema_collection import JsonSchema, SchemaModel
 from src.mongodb import load_collection, MongoConfig, SchemaCollection, FileCollection
 from src.pipelines import rag_pipeline
 
@@ -49,12 +52,6 @@ s3_client = S3Client(
 )
 
 
-class SchemaDto(BaseModel):
-    id: Optional[str] = None
-    name: str
-    json_schema: JsonSchema
-
-
 @app.post("/bucket")
 def create_bucket() -> None:
     s3_client.create_butcket()
@@ -62,13 +59,18 @@ def create_bucket() -> None:
 
 @app.post("/upload")
 async def upload_file(file: UploadFile) -> None:
-    _, ext = os.path.splitext(file.filename)
-    content = await file.read()
-    s3_file = S3File(ext=ext, content=content)
+    try:
+        _, ext = os.path.splitext(file.filename)
+        content = await file.read()
+        s3_file = S3FileEntity(ext=ext, content=content)
 
-    if not await file_collection.has(s3_file.key):
-        s3_client.upload_file(s3_file)
-        await file_collection.insert(FileModel(name=file.filename, key=s3_file.key))
+        if not await file_collection.has(s3_file.key):
+            s3_client.upload_file(s3_file)
+            await file_collection.insert(
+                FileEntity(name=file.filename, key=s3_file.key)
+            )
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=str(ex))
 
 
 @app.post("/download")
@@ -95,12 +97,16 @@ async def download_file(key: str) -> StreamingResponse:
     },
 )
 def validate_schema(
-    schema: JsonSchema = Body(..., description="The schema to be validated.")
+    schema: JsonSchemaDto = Body(..., description="The schema to be validated.")
 ) -> bool:
     """
     Check if the provided schema is valid.
     """
-    return schema.is_valid
+    try:
+        entity = JsonSchemaEntity(**schema.model_dump())
+        return entity.is_valid
+    except Exception as ex:
+        raise HTTPException(status_code=400, detail=f"Invalid schema\n{str(ex)}")
 
 
 @app.put("/schema", status_code=204)
@@ -111,20 +117,21 @@ async def create_schema(
     Create a new schema or update an existing one if the `id` property is provided.
     """
     try:
-        if not schema.json_schema.is_valid:
-            return JSONResponse(
-                status_code=400,
-                content={"message": "Invalid schema"},
-            )
-
         if schema.id != None:
             return JSONResponse(
                 status_code=500,
                 content={"message": "Unsuported update operation"},
             )
 
+        json_schema_entity = JsonSchemaEntity(**schema.json_schema.model_dump())
+        if not json_schema_entity.json_schema.is_valid:
+            return JSONResponse(
+                status_code=400,
+                content={"message": "Invalid schema"},
+            )
+
         await schema_collection.insert(
-            SchemaModel(id=schema.id, name=schema.name, json_schema=schema.json_schema)
+            SchemaEntity(id=schema.id, name=schema.name, json_schema=json_schema_entity)
         )
     except Exception as ex:
         return JSONResponse(
@@ -148,7 +155,9 @@ async def create_schema(
         }
     },
 )
-async def ocr(file: UploadFile) -> str:
+async def ocr(
+    file: UploadFile = File(..., description="File to process through OCR.")
+) -> str:
     """
     Run only the OCR tool and return OCR processing.
     """
@@ -168,16 +177,16 @@ async def ocr(file: UploadFile) -> str:
                         "bill_to_name": "BTG Pactual",
                         "items": [
                             {
-                            "id": 1,
-                            "description": "Brochure Design",
-                            "quantity": 2,
-                            "rate": 100
+                                "id": 1,
+                                "description": "Brochure Design",
+                                "quantity": 2,
+                                "rate": 100
                             },
                             {
-                            "id": 2,
-                            "description": "Agenda",
-                            "quantity": 290,
-                            "rate": 20
+                                "id": 2,
+                                "description": "Agenda",
+                                "quantity": 290,
+                                "rate": 20
                             }
                         ]
                     }
@@ -188,11 +197,13 @@ async def ocr(file: UploadFile) -> str:
     },
 )
 async def process(
-    file: UploadFile,
     n: str = Query(
         ..., description="The name of the output schema to be used in the pipeline."
     ),
     q: str = Query(..., description="The query to be made to the pipeline."),
+    file: UploadFile = File(
+        ..., description="File to be processed through the pipeline."
+    ),
 ) -> dict[str, Any]:
     """
     Process the document with the specific schema through the RAG Pipeline.
@@ -210,8 +221,8 @@ async def process(
                 content={"message": f"Schema {n} not found or not created"},
             )
 
-        model = await schema_collection.find_by_name(n)
-        output_cls = model.json_schema.as_model()
+        entity = await schema_collection.find_by_name(n)
+        output_cls = entity.json_schema.as_model()
         result = await rag_pipeline(file, q, output_cls)
         return JSONResponse(status_code=200, content=result.model_dump())
     except Exception as ex:

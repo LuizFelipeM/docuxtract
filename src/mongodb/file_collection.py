@@ -1,20 +1,15 @@
-from beanie import Document, Indexed
-
-
-class FileModel(Document):
-    key: Indexed(str)  # type: ignore
-    name: str
+from src.entities.file_entity import FileEntity
 
 
 class FileCollection:
-    async def insert(self, schema: FileModel) -> str:
+    async def insert(self, schema: FileEntity) -> str:
         return (await schema.insert()).id
 
-    async def find_by_id(self, id: str) -> FileModel:
-        return await FileModel.find_one(FileModel.id == id)
+    async def find_by_id(self, id: str) -> FileEntity:
+        return await FileEntity.find_one(FileEntity.id == id)
 
-    async def find_by_key(self, key: str) -> FileModel:
-        return await FileModel.find_one(FileModel.key == key)
+    async def find_by_key(self, key: str) -> FileEntity:
+        return await FileEntity.find_one(FileEntity.key == key)
 
     async def has(self, key: str) -> bool:
-        return await FileModel.find_one(FileModel.key == key) != None
+        return await FileEntity.find_one(FileEntity.key == key) != None

@@ -1,8 +1,9 @@
-import os
+import logging
 from io import BytesIO
 from fastapi import APIRouter, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 from src import files_service
+from src.logger import logger
 
 router = APIRouter(prefix="/files", tags=["Files"])
 
@@ -19,6 +20,7 @@ async def download_file(key: str) -> StreamingResponse:
             headers={"Content-Disposition": f"attachment; filename={filename}"},
         )
     except Exception as ex:
+        logger.log(logging.ERROR, ex)
         raise HTTPException(status_code=500, detail=str(ex))
 
 
@@ -36,6 +38,7 @@ async def upload_file(file: UploadFile) -> None:
         #     )
         await files_service.upload_file(file.filename, await file.read())
     except Exception as ex:
+        logger.log(logging.ERROR, ex)
         raise HTTPException(status_code=500, detail=str(ex))
 
 
@@ -46,4 +49,5 @@ async def delete_file(key: str) -> StreamingResponse:
         # s3_file = S3Client.download_file(file.key)
         await files_service.delete_file(key)
     except Exception as ex:
+        logger.log(logging.ERROR, ex)
         raise HTTPException(status_code=500, detail=str(ex))

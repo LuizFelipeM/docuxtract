@@ -1,10 +1,11 @@
-import json
 import os
+import logging
 from uuid import UUID
 from fastapi import UploadFile
 from pydantic import BaseModel
 
-from ..entities.s3_file_entity import S3FileEntity
+from ..logger import logger
+
 from ..infrastructure.S3 import S3Client
 
 from .files_service import FilesService
@@ -18,11 +19,7 @@ class RAGPipelineService:
         self._s3_client = s3_client
 
     async def process(
-        self,
-        file: UploadFile,
-        query_text: str,
-        output_cls: type[BaseModel],
-        request_id: UUID,
+        self, file: UploadFile, query_text: str, output_cls: type[BaseModel]
     ) -> BaseModel:
         try:
             file_content = await file.read()
@@ -32,14 +29,16 @@ class RAGPipelineService:
             key = await self._files_service.upload_file(name, ext, file_content)
 
             # Extract file markup data
-            extracted_content = await extract_markup(
-                file.content_type, file_content, request_id
-            )
-
-            # Log OCR output
+            extracted_content = await extract_markup(file.content_type, file_content)
 
             # Process extracted markup data
             extracted_text = extracted_content.decode("utf-8")
+
+            # Log OCR output
+            logger.log(
+                logging.INFO,
+                f"Extracted from file {key} the OCR output\n{extracted_text}",
+            )
 
             # interpreted_text = interpret_text(
             #     extracted_text, query_text, "llama3.1:8b", output_cls, request_id, prompt_json_schema=True
@@ -50,12 +49,13 @@ class RAGPipelineService:
                 query_text,
                 "mistral:7b",
                 output_cls,
-                request_id,
                 prompt_json_schema=True,
             )
 
             # Log LLM output
+            logger.log(logging.INFO, f"Extracted LLM output {result}")
 
             return result
         except Exception as ex:
-            raise f"Unable to process the pipeline {request_id}"
+            logger.log(logging.ERROR, ex)
+            raise f"Unable to process the pipeline"

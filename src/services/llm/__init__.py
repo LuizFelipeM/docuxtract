@@ -1,11 +1,13 @@
 import json
+import logging
 from time import time
-from uuid import UUID
 from pydantic import BaseModel
 from llama_index.core import Settings
 from llama_index.llms.ollama import Ollama
 from llama_index.core.program import LLMTextCompletionProgram
 from llama_index.core.output_parsers import PydanticOutputParser
+
+from ...logger import logger
 
 
 def interpret_text(
@@ -13,7 +15,6 @@ def interpret_text(
     query: str,
     model: str,
     output_cls: type[BaseModel],
-    request_id: UUID,
     *,
     prompt_json_schema=False,
 ) -> BaseModel:
@@ -43,6 +44,8 @@ def interpret_text(
     result = prog(xml=text, query=query, json_schema=json_schema)
 
     end_time = time()
-    print(f"Elapsed time of {model} = {end_time - start_time} seconds")
+    logger.log(
+        logging.INFO, f"Elapsed time of {model} = {end_time - start_time} seconds"
+    )
 
     return result

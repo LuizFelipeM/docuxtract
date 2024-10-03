@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Body, HTTPException
 from fastapi.responses import JSONResponse
 from ..dtos.json_schema_dto import JsonSchemaDto
@@ -5,6 +7,7 @@ from ..dtos.schema_dto import SchemaDto
 from ..entities.json_schema_entity import JsonSchemaEntity
 from ..entities.schema_entity import SchemaEntity
 from src import schemas_collection
+from src.logger import logger
 
 router = APIRouter(prefix="/schemas", tags=["Schemas"])
 
@@ -28,6 +31,7 @@ def validate_schema(
         entity = JsonSchemaEntity(**schema.model_dump())
         return entity.is_valid
     except Exception as ex:
+        logger.log(logging.ERROR, ex)
         raise HTTPException(status_code=400, detail=f"Invalid schema\n{str(ex)}")
 
 
@@ -56,6 +60,7 @@ async def create_or_update_schema(
             SchemaEntity(id=schema.id, name=schema.name, json_schema=json_schema_entity)
         )
     except Exception as ex:
+        logger.log(logging.ERROR, ex)
         return JSONResponse(
             status_code=500,
             content={"message": str(ex)},

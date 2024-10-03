@@ -1,9 +1,12 @@
+import logging
+
 from typing import Any
 from uuid import uuid4
 from fastapi import APIRouter, File, Query, UploadFile
 from fastapi.responses import JSONResponse
 from ..services.ocr import extract_markup
 from src import schemas_collection, rag_pipeline_service
+from src.logger import logger
 
 router = APIRouter(prefix="/pipelines", tags=["Pipelines"])
 
@@ -78,8 +81,6 @@ async def rag_pipeline(
     """
     Process the document with the specific schema through the RAG Pipeline.
     """
-    request_id = uuid4()
-
     try:
         if not q:
             return JSONResponse(
@@ -96,9 +97,10 @@ async def rag_pipeline(
         entity = await schemas_collection.find_by_name(n)
         output_cls = entity.json_schema.as_model()
 
-        result = await rag_pipeline_service.process(file, q, output_cls, request_id)
+        result = await rag_pipeline_service.process(file, q, output_cls)
         return JSONResponse(status_code=200, content=result.model_dump())
     except Exception as ex:
+        logger.log(logging.ERROR, ex)
         return JSONResponse(
             status_code=500,
             content={"message": str(ex)},

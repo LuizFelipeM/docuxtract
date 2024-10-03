@@ -1,5 +1,7 @@
-import os
-from uuid import UUID
+import logging
+
+from src.logger import logger
+
 from ..infrastructure.S3 import S3Client
 from ..entities.file_entity import FileEntity
 from ..entities.s3_file_entity import S3FileEntity
@@ -17,6 +19,7 @@ class FilesService:
             s3_file = self._s3_client.download_file(file.key)
             return file.name, s3_file.content
         except Exception as ex:
+            logger.log(logging.ERROR, ex)
             raise f"Unable to download file {key}"
 
     async def upload_file(self, name: str, ext: str, content: bytes) -> str:
@@ -31,6 +34,7 @@ class FilesService:
 
             return s3_file.key
         except Exception as ex:
+            logger.log(logging.ERROR, ex)
             raise f"Unable to save file {name}{ext}"
 
     async def delete_file(self, key: str) -> bytes:
@@ -39,4 +43,5 @@ class FilesService:
             self._s3_client.delete_file(file.key)
             await self._files_collection.delete(file)
         except Exception as ex:
+            logger.log(logging.ERROR, ex)
             raise f"Unable to delete file {key}"

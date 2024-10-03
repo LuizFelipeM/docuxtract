@@ -1,7 +1,7 @@
 from src.entities.schema_entity import SchemaEntity
 
 
-class SchemaCollection:
+class SchemasCollection:
     async def insert(self, schema: SchemaEntity) -> str:
         return (await schema.insert()).id
 

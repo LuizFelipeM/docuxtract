@@ -3,10 +3,10 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel
 from src.entities.file_entity import FileEntity
 from src.entities.schema_entity import SchemaEntity
-from .file_collection import FileCollection
-from .schema_collection import SchemaCollection
+from .files_collection import FilesCollection
+from .schemas_collection import SchemasCollection
 
-__all__ = ["SchemaCollection", "FileCollection", "load_collection", "MongoConfig"]
+__all__ = ["SchemasCollection", "FilesCollection", "load_collection", "MongoConfig"]
 
 
 class MongoConfig(BaseModel):

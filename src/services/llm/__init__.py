@@ -1,5 +1,6 @@
 import json
 from time import time
+from uuid import UUID
 from pydantic import BaseModel
 from llama_index.core import Settings
 from llama_index.llms.ollama import Ollama
@@ -12,6 +13,8 @@ def interpret_text(
     query: str,
     model: str,
     output_cls: type[BaseModel],
+    request_id: UUID,
+    *,
     prompt_json_schema=False,
 ) -> BaseModel:
     start_time = time()

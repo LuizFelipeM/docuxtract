@@ -1,5 +1,4 @@
 from typing import Any
-from src.mongodb.schema_collection import JsonSchema
 
 
 def remove_key_recursive(key: str, schema: dict[str, Any]) -> dict[str, Any]:

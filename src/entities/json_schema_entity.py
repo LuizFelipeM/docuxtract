@@ -6,36 +6,41 @@ from pydantic_core import PydanticUndefined
 
 class JsonSchemaEntity(BaseModel):
     """
-    The schema definition for JSON output validation using Pydantic dynamic model class generation
+    The schema definition for JSON output validation using Pydantic dynamic model class generation.
     """
 
     name: str
     """
-    Define the field name. Will be used as JSON keys when the output JSON is generated.
+    Define the field name. Will be used as JSON key when the output JSON is generated.
     """
 
     type: Literal["datetime", "string", "int", "float", "bool", "object", "array"]
     """
-    Define the field type
+    Define the field type.
     """
 
     required: bool
     """
-    Define if the field is required making the field thrown an error if the field is required and not filled
+    Define if the field is required making the field thrown an error if the field is required and not filled.
+    """
+
+    description: str
+    """
+    Define the field description to be used through the LLM.
     """
 
     properties: Optional[list[JsonSchemaEntity]] = Field(None)
     """
-    Properties are used to define the properties within an `object` type JsonSchema
+    Properties are used to define the properties within an `object` type JsonSchema.
 
-    **SHOULD NOT** be used in other JsonSchema's types besides `object` type
+    **SHOULD NOT** be used in other JsonSchema's types besides `object` type.
     """
 
     items: Optional[JsonSchemaEntity] = Field(None)
     """
-    Items are used to define the type of items within an `array` type JsonSchema
+    Items are used to define the type of items within an `array` type JsonSchema.
 
-    **SHOULD NOT** be used in other JsonSchema's types besides `array` type
+    **SHOULD NOT** be used in other JsonSchema's types besides `array` type.
     """
 
     @property
@@ -104,9 +109,11 @@ class JsonSchemaEntity(BaseModel):
 
         return self.properties == None and self.items == None
 
+    # region Pydantic model class generator
+
     def as_model(self) -> type[BaseModel]:
         """
-        Convert the JsonSchema into a Pydantic dynamic model class for field validation
+        Convert the JsonSchema into a Pydantic dynamic model class for field validation.
         """
         attrs = self.attributes_to_model_fields()
         return create_model(self.name, **attrs)
@@ -123,10 +130,12 @@ class JsonSchemaEntity(BaseModel):
         return model_fields
 
     def create_model_tuple(self) -> tuple[type, Any]:
+        t = self.get_model_type()
         return (
-            self.get_model_type(),
+            t if self.required else Optional[t],
             Field(
-                default=(PydanticUndefined if self.required else None),
+                ...,
+                description=self.description,
             ),
         )
 
@@ -146,3 +155,21 @@ class JsonSchemaEntity(BaseModel):
                 return self.as_model()
             case _:
                 raise f"Type {self.type} conversion not found"
+
+    # endregion
+
+    # region Schema to LLM prompt generator
+
+    def as_prompt_metadata(self) -> str:
+        metadata = f"{self.name}: {self.description}\n"
+
+        if self.type == "object":
+            for prop in self.properties:
+                metadata += prop.as_prompt_metadata()
+
+        if self.type == "array":
+            metadata += self.items.as_prompt_metadata()
+
+        return metadata
+
+    # endregion

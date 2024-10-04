@@ -4,6 +4,8 @@ from uuid import UUID
 from fastapi import UploadFile
 from pydantic import BaseModel
 
+from ..entities.json_schema_entity import JsonSchemaEntity
+
 from ..logger import logger
 
 from ..infrastructure.S3 import S3Client
@@ -19,7 +21,7 @@ class RAGPipelineService:
         self._s3_client = s3_client
 
     async def process(
-        self, file: UploadFile, query_text: str, output_cls: type[BaseModel]
+        self, file: UploadFile, schema: JsonSchemaEntity, *, query: str = None
     ) -> BaseModel:
         try:
             file_content = await file.read()
@@ -40,15 +42,19 @@ class RAGPipelineService:
                 f"Extracted from file {key} the OCR output\n{extracted_text}",
             )
 
+            output_cls = schema.as_model()
+            metadata = schema.as_prompt_metadata()
+
             # interpreted_text = interpret_text(
             #     extracted_text, query_text, "llama3.1:8b", output_cls, request_id, prompt_json_schema=True
             # )
 
             result = interpret_text(
                 extracted_text,
-                query_text,
                 "mistral:7b",
                 output_cls,
+                metadata,
+                query=query,
                 prompt_json_schema=True,
             )
 

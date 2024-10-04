@@ -52,45 +52,54 @@ class JsonSchemaEntity(BaseModel):
             "name": "invoice",
             "type": "object",
             "required": true,
+            "description": "Invoice document data",
             "properties": [
                 {
                     "name": "due_date",
                     "type": "datetime",
-                    "required": true
+                    "required": true,
+                    "description": "Due date of the invoice"
                 },
                 {
                     "name": "bill_to_name",
                     "type": "string",
-                    "required": false
+                    "required": false,
+                    "description": "Name of the billed company"
                 },
                 {
                     "name": "items",
                     "type": "array",
                     "required": true,
+                    "description": "Items that compose the invoice",
                     "items": {
                         "name": "invoice_items",
                         "type": "object",
                         "required": true,
+                        "description": "Items that compose the invoice",
                         "properties": [
                             {
                                 "name": "id",
                                 "type": "int",
-                                "required": true
+                                "required": true,
+                                "description": "Id of the current item"
                             },
                             {
                                 "name": "description",
                                 "type": "string",
-                                "required": true
+                                "required": true,
+                                "description": "Current item description"
                             },
                             {
                                 "name": "quantity",
                                 "type": "int",
-                                "required": true
+                                "required": true,
+                                "description": "Quantity of the current item"
                             },
                             {
                                 "name": "rate",
                                 "type": "float",
-                                "required": true
+                                "required": true,
+                                "description": "Rate of the current item"
                             }
                         ]
                     }

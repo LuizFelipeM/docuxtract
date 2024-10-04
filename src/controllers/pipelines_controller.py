@@ -73,7 +73,7 @@ async def rag_pipeline(
     n: str = Query(
         ..., description="The name of the output schema to be used in the pipeline."
     ),
-    q: str = Query(..., description="The query to be made to the pipeline."),
+    q: str = Query(None, description="The query to be made to the pipeline."),
     file: UploadFile = File(
         ..., description="File to be processed through the RAG pipeline."
     ),
@@ -82,12 +82,6 @@ async def rag_pipeline(
     Process the document with the specific schema through the RAG Pipeline.
     """
     try:
-        if not q:
-            return JSONResponse(
-                status_code=400,
-                content={"message": f"Cannot query with empty query string"},
-            )
-
         if not n or not (await schemas_collection.has(n)):
             return JSONResponse(
                 status_code=400,
@@ -95,9 +89,8 @@ async def rag_pipeline(
             )
 
         entity = await schemas_collection.find_by_name(n)
-        output_cls = entity.json_schema.as_model()
 
-        result = await rag_pipeline_service.process(file, q, output_cls)
+        result = await rag_pipeline_service.process(file, entity.json_schema, query=q)
         return JSONResponse(status_code=200, content=result.model_dump())
     except Exception as ex:
         logger.log(logging.ERROR, ex)

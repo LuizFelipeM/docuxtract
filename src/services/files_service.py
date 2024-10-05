@@ -17,7 +17,7 @@ class FilesService:
         try:
             file = await self._files_collection.find_by_key(key)
             s3_file = self._s3_client.download_file(file.key)
-            return file.name, s3_file.content
+            return file.filename, s3_file.content
         except Exception as ex:
             logger.log(logging.ERROR, ex)
             raise f"Unable to download file {key}"

@@ -1,15 +1,15 @@
+from dotenv import load_dotenv
+
+load_dotenv()
+
 import os
 import time
 from uuid import uuid4
-from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.concurrency import asynccontextmanager
 from src.infrastructure.mongodb import load_collection, MongoConfig
 from src.controllers import files_controller, schemas_controller, pipelines_controller
 from src.logger import logger, log_context
-
-
-load_dotenv()
 
 
 @asynccontextmanager

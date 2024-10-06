@@ -14,7 +14,7 @@ class JsonSchemaEntity(BaseModel):
     Define the field name. Will be used as JSON key when the output JSON is generated.
     """
 
-    type: Literal["datetime", "string", "int", "float", "bool", "object", "array"]
+    type: Literal["datetime", "string", "number", "bool", "object", "array"]
     """
     Define the field type.
     """
@@ -79,7 +79,7 @@ class JsonSchemaEntity(BaseModel):
                         "properties": [
                             {
                                 "name": "id",
-                                "type": "int",
+                                "type": "number",
                                 "required": true,
                                 "description": "Id of the current item"
                             },
@@ -91,13 +91,13 @@ class JsonSchemaEntity(BaseModel):
                             },
                             {
                                 "name": "quantity",
-                                "type": "int",
+                                "type": "number",
                                 "required": true,
                                 "description": "Quantity of the current item"
                             },
                             {
                                 "name": "rate",
-                                "type": "float",
+                                "type": "number",
                                 "required": true,
                                 "description": "Rate of the current item"
                             }
@@ -152,9 +152,7 @@ class JsonSchemaEntity(BaseModel):
         match self.type:
             case "datetime" | "string":
                 return str
-            case "int":
-                return int
-            case "float":
+            case "number":
                 return float
             case "bool":
                 return bool

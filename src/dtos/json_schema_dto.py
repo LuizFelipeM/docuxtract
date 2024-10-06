@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 
 class JsonSchemaDto(BaseModel):
     name: str
-    type: Literal["datetime", "string", "int", "float", "bool", "object", "array"]
+    type: Literal["datetime", "string", "number", "bool", "object", "array"]
     required: bool
     description: str
     properties: Optional[list[JsonSchemaDto]] = Field(None)

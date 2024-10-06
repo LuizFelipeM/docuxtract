@@ -7,6 +7,7 @@ import time
 from uuid import uuid4
 from fastapi import FastAPI, Request
 from fastapi.concurrency import asynccontextmanager
+from fastapi.middleware.cors import CORSMiddleware
 from src.infrastructure.mongodb import load_collection, MongoConfig
 from src.controllers import files_controller, schemas_controller, pipelines_controller
 from src.logger import logger, log_context
@@ -27,6 +28,14 @@ app = FastAPI(
     summary="A simple way of extracting document data.",
     description="This API is intended to be easy for developers to add value with document extraction tools.",
     lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 

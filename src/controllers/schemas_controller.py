@@ -1,7 +1,9 @@
 import logging
 
-from fastapi import APIRouter, Body, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.responses import JSONResponse
+
+from ..auth.dependencies import validate_token
 from ..dtos.json_schema_dto import JsonSchemaDto
 from ..dtos.schema_dto import SchemaDto
 from ..entities.json_schema_entity import JsonSchemaEntity
@@ -9,7 +11,9 @@ from ..entities.schema_entity import SchemaEntity
 from src import schemas_collection
 from src.logger import logger
 
-router = APIRouter(prefix="/schemas", tags=["Schemas"])
+router = APIRouter(
+    prefix="/schemas", tags=["Schemas"], dependencies=[Depends(validate_token)]
+)
 
 
 @router.post(

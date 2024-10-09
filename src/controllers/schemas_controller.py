@@ -39,6 +39,29 @@ def validate_schema(
         raise HTTPException(status_code=400, detail=f"Invalid schema\n{str(ex)}")
 
 
+def to_json_schema_dto(json_schema: JsonSchemaEntity) -> JsonSchemaDto:
+    return JsonSchemaDto(**json_schema.model_dump())
+
+
+def to_schema_dto(schema: SchemaEntity) -> SchemaDto:
+    return SchemaDto(
+        id=str(schema.id),
+        name=schema.name,
+        json_schema=to_json_schema_dto(schema.json_schema),
+    )
+
+
+@router.get("/")
+async def get_schemas() -> list[SchemaDto]:
+    try:
+        entities = await schemas_collection.get_all()
+        a = map(to_schema_dto, entities)
+        return list(a)
+    except Exception as ex:
+        logger.log(logging.ERROR, ex)
+        raise HTTPException(status_code=500, detail=f"{str(ex)}")
+
+
 @router.put("/", status_code=204)
 async def create_or_update_schema(
     schema: SchemaDto = Body(..., description="The schema to be created or updated.")

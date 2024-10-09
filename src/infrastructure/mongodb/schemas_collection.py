@@ -2,6 +2,9 @@ from src.entities.schema_entity import SchemaEntity
 
 
 class SchemasCollection:
+    async def get_all(self) -> list[SchemaEntity]:
+        return await SchemaEntity.all()
+
     async def insert(self, schema: SchemaEntity) -> str:
         return (await schema.insert()).id
 

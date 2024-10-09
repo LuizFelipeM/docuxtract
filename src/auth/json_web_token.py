@@ -1,6 +1,9 @@
+import logging
 import os
 import jwt
 from dataclasses import dataclass
+
+from src.logger import logger
 from .custom_exceptions import BadCredentialsException, UnableCredentialsException
 
 
@@ -27,8 +30,10 @@ class JsonWebToken:
                 audience=self.auth0_audience,
                 issuer=self.auth0_issuer_url,
             )
-        except jwt.exceptions.PyJWKClientError:
+        except jwt.exceptions.PyJWKClientError as ex:
+            logger.log(logging.ERROR, str(ex))
             raise UnableCredentialsException
-        except jwt.exceptions.InvalidTokenError:
+        except jwt.exceptions.InvalidTokenError as ex:
+            logger.log(logging.ERROR, str(ex))
             raise BadCredentialsException
         return payload

@@ -2,6 +2,9 @@ from src.entities.schema_entity import SchemaEntity
 
 
 class SchemasCollection:
+    async def get_all(self, user_id: str) -> list[SchemaEntity]:
+        return await SchemaEntity.find_many(SchemaEntity.user == user_id).to_list()
+
     async def insert(self, schema: SchemaEntity) -> str:
         return (await schema.insert()).id
 

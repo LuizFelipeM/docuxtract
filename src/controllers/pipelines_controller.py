@@ -2,13 +2,17 @@ import logging
 
 from typing import Any
 from uuid import uuid4
-from fastapi import APIRouter, File, Query, UploadFile
+from fastapi import APIRouter, Depends, File, Query, UploadFile
 from fastapi.responses import JSONResponse
+
+from ..auth.dependencies import validate_token
 from ..services.ocr import extract_markup
 from src import schemas_collection, rag_pipeline_service
 from src.logger import logger
 
-router = APIRouter(prefix="/pipelines", tags=["Pipelines"])
+router = APIRouter(
+    prefix="/pipelines", tags=["Pipelines"], dependencies=[Depends(validate_token)]
+)
 
 
 @router.post(

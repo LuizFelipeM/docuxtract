@@ -19,21 +19,27 @@ class JsonWebToken:
 
     def validate(self):
         try:
-            jwks_client = jwt.PyJWKClient(self.jwks_uri)
-            jwt_signing_key = jwks_client.get_signing_key_from_jwt(
-                self.jwt_access_token
-            ).key
-            payload = jwt.decode(
-                self.jwt_access_token,
-                jwt_signing_key,
-                algorithms=self.algorithm,
-                audience=self.auth0_audience,
-                issuer=self.auth0_issuer_url,
-            )
+            payload = self.decode()
+            if payload:
+                return payload
+            raise BadCredentialsException
         except jwt.exceptions.PyJWKClientError as ex:
             logger.log(logging.ERROR, str(ex))
             raise UnableCredentialsException
         except jwt.exceptions.InvalidTokenError as ex:
             logger.log(logging.ERROR, str(ex))
             raise BadCredentialsException
+
+    def decode(self):
+        jwks_client = jwt.PyJWKClient(self.jwks_uri)
+        jwt_signing_key = jwks_client.get_signing_key_from_jwt(
+            self.jwt_access_token
+        ).key
+        payload = jwt.decode(
+            self.jwt_access_token,
+            jwt_signing_key,
+            algorithms=self.algorithm,
+            audience=self.auth0_audience,
+            issuer=self.auth0_issuer_url,
+        )
         return payload

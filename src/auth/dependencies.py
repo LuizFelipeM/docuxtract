@@ -8,6 +8,10 @@ def validate_token(token: str = Depends(get_bearer_token)):
     return JsonWebToken(token).validate()
 
 
+def get_current_user(token: str = Depends(get_bearer_token)) -> str:
+    return JsonWebToken(token).decode()["sub"].replace("auth0|", "")
+
+
 class PermissionsValidator:
     def __init__(self, required_permissions: list[str]):
         self.required_permissions = required_permissions

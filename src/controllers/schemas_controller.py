@@ -3,7 +3,7 @@ import logging
 from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.responses import JSONResponse
 
-from ..auth.dependencies import validate_token
+from ..auth.dependencies import get_current_user, validate_token
 from ..dtos.json_schema_dto import JsonSchemaDto
 from ..dtos.schema_dto import SchemaDto
 from ..entities.json_schema_entity import JsonSchemaEntity
@@ -39,24 +39,18 @@ def validate_schema(
         raise HTTPException(status_code=400, detail=f"Invalid schema\n{str(ex)}")
 
 
-def to_schema_dto(schema: SchemaEntity) -> SchemaDto:
-    return SchemaDto(
-        id=str(schema.id),
-        name=schema.name,
-        json_schema=JsonSchemaDto(**schema.json_schema),
-    )
-
-
 @router.get("/")
-async def get_schemas() -> list[SchemaDto]:
+async def get_schemas(
+    current_user: dict = Depends(get_current_user),
+) -> list[SchemaDto]:
     try:
         schemaDtos = map(
             lambda schema: SchemaDto(
                 id=str(schema.id),
                 name=schema.name,
-                json_schema=JsonSchemaDto(**schema.json_schema),
+                json_schema=JsonSchemaDto(**schema.json_schema.model_dump()),
             ),
-            await schemas_collection.get_all(),
+            await schemas_collection.get_all(current_user),
         )
         return list(schemaDtos)
     except Exception as ex:
@@ -66,7 +60,8 @@ async def get_schemas() -> list[SchemaDto]:
 
 @router.put("/", status_code=204)
 async def create_or_update_schema(
-    schema: SchemaDto = Body(..., description="The schema to be created or updated.")
+    current_user: dict = Depends(get_current_user),
+    schema: SchemaDto = Body(..., description="The schema to be created or updated."),
 ) -> None:
     """
     Create a new schema or update an existing one if the `id` property is provided.
@@ -86,7 +81,12 @@ async def create_or_update_schema(
             )
 
         await schemas_collection.insert(
-            SchemaEntity(id=schema.id, name=schema.name, json_schema=json_schema_entity)
+            SchemaEntity(
+                id=schema.id,
+                user=current_user,
+                name=schema.name,
+                json_schema=json_schema_entity,
+            )
         )
     except Exception as ex:
         logger.log(logging.ERROR, ex)

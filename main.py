@@ -69,9 +69,8 @@ async def logging_middleware(request: Request, call_next):
     process_time = time.perf_counter() - start_time
 
     # secure_headers.set_headers(response)
-    response.headers["X-Process-Time"] = str(process_time)
-    response.headers["X-Request-ID"] = request_id
     logger.info(f"Ending request with ID: {request_id} in {process_time}s")
+    response.headers["X-Request-ID"] = request_id
     return response
 
 

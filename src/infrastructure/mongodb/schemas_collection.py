@@ -17,3 +17,6 @@ class SchemasCollection:
 
     async def has(self, name: str) -> bool:
         return await SchemaEntity.find_one(SchemaEntity.name == name) != None
+
+    async def delete(self, schema: SchemaEntity) -> None:
+        await schema.delete()

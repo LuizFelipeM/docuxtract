@@ -117,3 +117,21 @@ async def create_or_update_schema(
             status_code=500,
             content={"message": str(ex)},
         )
+
+
+@router.delete("/{id}")
+async def get_schemas(
+    current_user: str = Depends(get_current_user),
+    id: str = Path(..., description="The schema id to be deleted."),
+) -> None:
+    try:
+        schema = await schemas_collection.find_by_id(id)
+        if schema.user != current_user:
+            return JSONResponse(
+                status_code=403,
+                content={"message": f"Schema {id} is not owner by the current user"},
+            )
+        await schemas_collection.delete(schema)
+    except Exception as ex:
+        logger.log(logging.ERROR, ex)
+        raise HTTPException(status_code=500, detail=f"{str(ex)}")

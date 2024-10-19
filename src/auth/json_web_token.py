@@ -42,6 +42,6 @@ class JsonWebToken:
             algorithms=self.algorithm,
             audience=self.auth0_audience,
             issuer=self.auth0_issuer_url,
-            options={"verify_exp": True, "leeway": timedelta(seconds=10)},
+            leeway=30,
         )
         return payload

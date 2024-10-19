@@ -1,3 +1,4 @@
+from beanie import PydanticObjectId
 from src.entities.schema_entity import SchemaEntity
 
 
@@ -9,7 +10,7 @@ class SchemasCollection:
         return (await schema.insert()).id
 
     async def find_by_id(self, id: str) -> SchemaEntity:
-        return await SchemaEntity.find_one(SchemaEntity.id == id)
+        return await SchemaEntity.find_one(SchemaEntity.id == PydanticObjectId(id))
 
     async def find_by_name(self, name: str) -> SchemaEntity:
         return await SchemaEntity.find_one(SchemaEntity.name == name)

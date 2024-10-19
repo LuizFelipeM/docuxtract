@@ -42,7 +42,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[os.getenv("CLIENT_ORIGIN_URL")],
+    allow_origins=os.getenv("CLIENT_ORIGIN_URLS").split(","),
     allow_methods=["*"],
     allow_headers=["Authorization", "Content-Type"],
     max_age=86400,

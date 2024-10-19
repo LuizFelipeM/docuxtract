@@ -1,6 +1,6 @@
 import logging
 
-from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException, Path
 from fastapi.responses import JSONResponse
 
 from ..auth.dependencies import get_current_user, validate_token
@@ -41,7 +41,7 @@ def validate_schema(
 
 @router.get("/")
 async def get_schemas(
-    current_user: dict = Depends(get_current_user),
+    current_user: str = Depends(get_current_user),
 ) -> list[SchemaDto]:
     try:
         schemaDtos = map(
@@ -58,9 +58,32 @@ async def get_schemas(
         raise HTTPException(status_code=500, detail=f"{str(ex)}")
 
 
+@router.get("/{id}")
+async def get_schemas(
+    current_user: str = Depends(get_current_user),
+    id: str = Path(..., description="The schema id to find."),
+) -> SchemaDto:
+    try:
+        schema = await schemas_collection.find_by_id(id)
+        if schema.user != current_user:
+            return JSONResponse(
+                status_code=403,
+                content={"message": f"Schema {id} is not owner by the current user"},
+            )
+
+        return SchemaDto(
+            id=str(schema.id),
+            name=schema.name,
+            json_schema=JsonSchemaDto(**schema.json_schema.model_dump()),
+        )
+    except Exception as ex:
+        logger.log(logging.ERROR, ex)
+        raise HTTPException(status_code=500, detail=f"{str(ex)}")
+
+
 @router.put("/", status_code=204)
 async def create_or_update_schema(
-    current_user: dict = Depends(get_current_user),
+    current_user: str = Depends(get_current_user),
     schema: SchemaDto = Body(..., description="The schema to be created or updated."),
 ) -> None:
     """

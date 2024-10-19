@@ -7,6 +7,7 @@ requires-python = ">=3.11"
 dependencies = [
     "beanie>=1.26.0",
     "boto3>=1.35.29",
+    "cryptography>=43.0.1",
     "fastapi[standard]>=0.115.0",
     "instructor>=1.4.3",
     "llama-index-embeddings-huggingface>=0.3.1",
@@ -16,7 +17,9 @@ dependencies = [
     "motor>=3.6.0",
     "openai>=1.47.0",
     "pillow>=10.4.0",
+    "pyjwt>=2.9.0",
     "pymongo>=4.9.1",
     "pytesseract>=0.3.13",
     "python-dotenv>=1.0.1",
+    "secure>=1.0.0",
 ]

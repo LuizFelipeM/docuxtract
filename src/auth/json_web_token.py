@@ -1,7 +1,4 @@
-<<<<<<< Updated upstream
-=======
 from datetime import timedelta
->>>>>>> Stashed changes
 import logging
 import os
 import jwt
@@ -45,9 +42,6 @@ class JsonWebToken:
             algorithms=self.algorithm,
             audience=self.auth0_audience,
             issuer=self.auth0_issuer_url,
-<<<<<<< Updated upstream
-=======
             options={"verify_exp": True, "leeway": timedelta(seconds=10)},
->>>>>>> Stashed changes
         )
         return payload

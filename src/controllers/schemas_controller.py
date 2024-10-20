@@ -1,5 +1,6 @@
 import logging
 
+from beanie import PydanticObjectId
 from fastapi import APIRouter, Body, Depends, HTTPException, Path
 from fastapi.responses import JSONResponse
 
@@ -90,12 +91,6 @@ async def create_or_update_schema(
     Create a new schema or update an existing one if the `id` property is provided.
     """
     try:
-        if schema.id != None:
-            return JSONResponse(
-                status_code=500,
-                content={"message": "Unsuported update operation"},
-            )
-
         json_schema_entity = JsonSchemaEntity(**schema.json_schema.model_dump())
         if not json_schema_entity.is_valid:
             return JSONResponse(
@@ -103,14 +98,17 @@ async def create_or_update_schema(
                 content={"message": "Invalid schema"},
             )
 
-        await schemas_collection.insert(
-            SchemaEntity(
-                id=schema.id,
-                user=current_user,
-                name=schema.name,
-                json_schema=json_schema_entity,
-            )
+        schema_entity = SchemaEntity(
+            id=PydanticObjectId(schema.id),
+            user=current_user,
+            name=schema.name,
+            json_schema=json_schema_entity,
         )
+
+        if schema_entity.id == None:
+            await schemas_collection.insert(schema_entity)
+        else:
+            await schemas_collection.replace(schema_entity)
     except Exception as ex:
         logger.log(logging.ERROR, ex)
         return JSONResponse(

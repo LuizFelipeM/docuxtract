@@ -13,7 +13,8 @@ class JsonWebToken:
     """Perform JSON Web Token (JWT) validation using PyJWT"""
 
     jwt_access_token: str
-    auth0_issuer_url: str = f"https://{os.getenv("AUTH0_DOMAIN")}/"
+    auth0_domain: str = os.getenv("AUTH0_DOMAIN")
+    auth0_issuer_url: str = f"https://{auth0_domain}/"
     auth0_audience: str = os.getenv("AUTH0_AUDIENCE")
     algorithm: str = "RS256"
     jwks_uri: str = f"{auth0_issuer_url}.well-known/jwks.json"

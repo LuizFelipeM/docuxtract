@@ -1,0 +1,1 @@
+uvx --from=yq tomlq -r '.package[]|.name+((.source|" @ "+(.url//"git+\(.git//empty)"))//"==\(.version)")' uv.lock >requirements.txt

@@ -11,7 +11,7 @@ from src import schemas_collection, rag_pipeline_service
 from src.logger import logger
 
 router = APIRouter(
-    prefix="/pipelines", tags=["Pipelines"], dependencies=[Depends(validate_token)]
+    prefix="/pipelines", tags=["Pipelines"], #dependencies=[Depends(validate_token)]
 )
 
 

@@ -105,7 +105,7 @@ async def create_or_update_schema(
             json_schema=json_schema_entity,
         )
 
-        if schema_entity.id == None:
+        if schema.id == None:
             await schemas_collection.insert(schema_entity)
         else:
             await schemas_collection.replace(schema_entity)

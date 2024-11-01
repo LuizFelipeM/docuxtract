@@ -1,0 +1,11 @@
+# Use an official Python runtime as a parent image
+FROM ollama/ollama:latest
+
+# RUN ollama pull mistral:7b
+
+EXPOSE 11434
+
+RUN nohup bash -c "ollama serve &" && sleep 5 && ollama pull mistral:7b
+# RUN nohup bash -c "ollama serve &" && wait4x http http://127.0.0.1:11434 && ollama pull mistral:7b
+
+CMD ["echo", "'Running 😁'"]

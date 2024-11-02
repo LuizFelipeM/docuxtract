@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 from time import time
 from pydantic import BaseModel
 from llama_index.core import Settings
@@ -28,7 +29,13 @@ def interpret_text(
         XML: {xml}\
         {query}
         """,
-        llm=Ollama(model=model, temperature=0, request_timeout=360.0, json_mode=True),
+        llm=Ollama(
+            model=model,
+            base_url=os.getenv("OLLAMA_HOST"),
+            temperature=0,
+            request_timeout=360.0,
+            json_mode=True,
+        ),
         verbose=True,
     )
 

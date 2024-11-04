@@ -39,9 +39,7 @@ async def ocr_pipeline(
     """
     Run only the OCR tool and return OCR processing.
     """
-    return (await extract_markup(file.content_type, await file.read(), uuid4())).decode(
-        "utf-8"
-    )
+    return (await extract_markup(file.content_type, await file.read())).decode("utf-8")
 
 
 @router.post(
@@ -112,12 +110,9 @@ async def ask(
     q: str = Query(None, description="The query to be made to the pipeline.")
 ) -> str:
     try:
-        ollama_host = os.getenv("OLLAMA_HOST")
-        ollama_port = os.getenv("OLLAMA_PORT")
-
         llm = Ollama(
             model="mistral:7b",
-            base_url=f"{ollama_host}:{ollama_port}",
+            base_url=os.getenv("OLLAMA_HOST"),
             temperature=0,
             request_timeout=360.0,
         )

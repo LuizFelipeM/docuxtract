@@ -25,12 +25,6 @@ spec:
           imagePullPolicy: Never
           ports:
             - containerPort: 8000
-          # Fix
-          envFrom:
-            - secretRef:
-                name: secrets
-            - configMapRef:
-                name: configmap
 
 ---
 apiVersion: apps/v1
@@ -54,6 +48,13 @@ spec:
           imagePullPolicy: Never
           ports:
             - containerPort: 11434
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "7Gi"
+              cpu: "1000m"
 
 # MVP To Do - setup a tesseract API
 # ---

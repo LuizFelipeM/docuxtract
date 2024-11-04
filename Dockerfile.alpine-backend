@@ -1,0 +1,31 @@
+# Use an official Python runtime as a parent image
+FROM alpine:latest
+
+# Update package indexes
+RUN apk update
+
+# Install Tesseract OCR and Portuguese language support
+RUN apk add tesseract-ocr
+
+# Install a specific Python version
+RUN apk add --no-cache python3~=3.12
+
+# According to https://tesseract-ocr.github.io/tessdoc/Installation.html must copy the tessdata
+# RUN apk add tesseract-ocr-data-por && UNPACK AND COPY_FILES
+
+# Install UV
+ADD https://astral.sh/uv/0.4.15/install.sh /uv-installer.sh
+RUN sh /uv-installer.sh && rm /uv-installer.sh
+ENV PATH="/root/.cargo/bin/:$PATH"
+
+# Copy the application into the container
+# and install the application dependencies
+COPY . /app
+WORKDIR /app
+RUN uv sync --frozen --no-cache
+
+# Expose port 8000 for the FastAPI application
+EXPOSE 8000
+
+# Run the FastAPI app with Uvicorn
+CMD ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

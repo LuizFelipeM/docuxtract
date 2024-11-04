@@ -21,10 +21,11 @@ spec:
     spec:
       containers:
         - name: fastapi-app
-          image: docuxtract-backend:latest  # Replace with your FastAPI app image
+          image: docuxtract-backend:latest
           imagePullPolicy: Never
           ports:
             - containerPort: 8000
+          # Fix
           envFrom:
             - secretRef:
                 name: secrets
@@ -49,11 +50,35 @@ spec:
     spec:
       containers:
         - name: ollama
-          # image: ollama-image  # Replace with the Ollama image
           image: ollama:mistral  # Replace with the Ollama image
           imagePullPolicy: Never
           ports:
             - containerPort: 11434
+
+# MVP To Do - setup a tesseract API
+# ---
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: tesseract
+#   namespace: docuxtract
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: tesseract
+#   template:
+#     metadata:
+#       labels:
+#         app: tesseract
+#     spec:
+#       containers:
+#       - name: tesseract
+#         image: jitesoft/tesseract-ocr
+#         command: ["train-lang"]
+#         args: ["por", "--best"]
+#         ports:
+#         - containerPort: 5000
 
 ---
 apiVersion: v1
@@ -84,6 +109,22 @@ spec:
       port: 11434
       targetPort: 11434
   type: ClusterIP
+
+# MVP To Do - setup a tesseract API
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: tesseract
+#   namespace: docuxtract
+# spec:
+#   selector:
+#     app: tesseract
+#   ports:
+#     - protocol: TCP
+#       port: 5000
+#       targetPort: 5000
+#   type: ClusterIP
 
 ---
 apiVersion: networking.k8s.io/v1

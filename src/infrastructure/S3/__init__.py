@@ -8,7 +8,7 @@ class S3Config(BaseModel):
     url: str
     access_key: str
     secret_access_key: str
-    region: str
+    region: str | None
     bucket: str
 
 

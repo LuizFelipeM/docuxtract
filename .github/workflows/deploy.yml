@@ -54,7 +54,9 @@ jobs:
           # echo ${{ secrets.KUBE_CONFIG }} | base64 --decode > ${HOME}/.kube/config
         run: |
           mkdir ${HOME}/.kube
-          printf ${{ secrets.KUBE_C }} >> ${HOME}/.kube/config
+          printf $KUBE_CONFIG >> ${HOME}/.kube/config
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_C }}
 
       # - name: Use context 🌎
       #   run: kubectl config use-context octobay-api

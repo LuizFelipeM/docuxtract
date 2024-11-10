@@ -33,7 +33,7 @@ jobs:
           context: .
           file: ./docker/Dockerfile.backend
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ewr.vultrcr.com/${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
   deploy:

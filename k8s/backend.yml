@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # Important note:
+  # The name is used as reference in the deploy pipeline
+  name: fastapi-backend
+  namespace: dltagg-ns
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: fastapi-backend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 20%
+  template:
+    metadata:
+      labels:
+        app: fastapi-backend
+    spec:
+      containers:
+        - name: fastapi-app
+          image: ewr.vultrcr.com/dltagg/docuxtract-backend:master
+          imagePullPolicy: Always
+          envFrom:
+            - secretRef:
+                name: fastapi-backend-env
+          ports:
+            - containerPort: 8000
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "4Gi"
+              cpu: "500m"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fastapi-service
+  namespace: dltagg-ns
+spec:
+  selector:
+    app: fastapi-backend
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+  type: ClusterIP

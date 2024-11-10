@@ -5,6 +5,7 @@ __pycache__/
 *.pyd
 
 # Ignore virtual environments
+# .env
 env/
 venv/
 .virtualenv/

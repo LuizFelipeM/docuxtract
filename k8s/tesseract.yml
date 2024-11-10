@@ -1,0 +1,45 @@
+# MVP To Do - setup a tesseract API
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tesseract
+  namespace: docuxtract
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tesseract
+  template:
+    metadata:
+      labels:
+        app: tesseract
+    spec:
+      containers:
+      - name: tesseract
+        image: jitesoft/tesseract-ocr
+        command: ["train-lang"]
+        args: ["por", "--best"]
+        ports:
+        - containerPort: 5000
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "20Gi"
+            cpu: "1000m"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tesseract
+  namespace: docuxtract
+spec:
+  selector:
+    app: tesseract
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
+  type: ClusterIP

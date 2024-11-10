@@ -1,8 +1,6 @@
 name: Build and Deploy to Vultr VKE
 
 on:
-  # push:
-  #   branches: [ master ]
   workflow_dispatch:
 
 jobs:
@@ -47,6 +45,11 @@ jobs:
     steps:
       - name: Checkout 🛎️
         uses: actions/checkout@v4
+
+      - name: Configure kubectl 🔩
+        uses: actions-hub/kubectl@master
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
         
       - name: Create kubeconfig 🔧
         run: |
@@ -63,5 +66,10 @@ jobs:
       # - name: Deploy to K8S 
       #   run: kubectl apply -f k8s/
       
-      - name: Deploy to K8S ☸️
-        run: kubectl apply -f kubernetes.yml
+      # - name: Deploy to K8S ☸️
+      #   run: kubectl apply -f kubernetes.yml
+
+      - name: Rollout restart K8S Application Pods ☸️
+        uses: actions-hub/kubectl@master
+        with:
+          args: rollout restart deployment/fastapi-backend -n dltagg-ns

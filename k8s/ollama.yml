@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama-service
+  namespace: dltagg-ns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ollama-service
+  template:
+    metadata:
+      labels:
+        app: ollama-service
+    spec:
+      containers:
+        - name: ollama
+          image: ewr.vultrcr.com/dltagg/ollama:mistral  # Replace with the Ollama image
+          ports:
+            - containerPort: 11434
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "20Gi"
+              cpu: "1000m"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama-service
+  namespace: dltagg-ns
+spec:
+  selector:
+    app: ollama-service
+  ports:
+    - protocol: TCP
+      port: 11434
+      targetPort: 11434
+  type: ClusterIP

@@ -1,5 +1,6 @@
 import logging
 from io import BytesIO
+import os
 from fastapi import APIRouter, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 from src import files_service
@@ -36,7 +37,8 @@ async def upload_file(file: UploadFile) -> None:
         #     await files_collection.insert(
         #         FileEntity(name=file.filename, key=s3_file.key)
         #     )
-        await files_service.upload_file(file.filename, await file.read())
+        name, ext = os.path.splitext(file.filename)
+        await files_service.upload_file(name, ext, await file.read())
     except Exception as ex:
         logger.log(logging.ERROR, ex)
         raise HTTPException(status_code=500, detail=str(ex))

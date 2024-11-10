@@ -25,6 +25,12 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: dltagg/docuxtract-backend
+        
+      - name: Generate UUID 🆔
+        id: generate-uuid
+        uses: filipstefansson/uuid-action@v1
+        with:
+          name: ${{ gihub.sha }}
 
       - name: Build and push Docker image 🐳
         id: push
@@ -33,7 +39,7 @@ jobs:
           context: .
           file: ./docker/Dockerfile.backend
           push: true
-          tags: ewr.vultrcr.com/${{ steps.meta.outputs.tags }}
+          tags: ewr.vultrcr.com/${{ steps.meta.outputs.tags }}-${{ steps.generate-uuid.outputs.uuid }}
           labels: ${{ steps.meta.outputs.labels }}
 
   deploy:

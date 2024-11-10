@@ -1,5 +1,6 @@
 import os
 import boto3
+from botocore.client import Config
 from pydantic import BaseModel
 from src.entities.s3_file_entity import S3FileEntity
 
@@ -23,6 +24,7 @@ class S3Client:
             aws_access_key_id=config.access_key,
             aws_secret_access_key=config.secret_access_key,
             region_name=config.region,
+            config=Config(signature_version="s3v4"),
         )
 
     def create_butcket(self) -> None:

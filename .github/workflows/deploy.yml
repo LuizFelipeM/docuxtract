@@ -28,9 +28,7 @@ jobs:
         
       - name: Generate UUID 🆔
         id: generate-uuid
-        uses: filipstefansson/uuid-action@v1
-        with:
-          name: ${{ github.sha }}
+        run: echo "uuid=$(uuidgen)" >> $GITHUB_OUTPUT
 
       - name: Build and push Docker image 🐳
         id: push

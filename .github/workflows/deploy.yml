@@ -23,16 +23,11 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: dltagg/docuxtract-backend
-        
-      # - name: Generate UUID 🆔
-      #   id: generate-uuid
-      #   run: echo "uuid=$(uuidgen)" >> $GITHUB_OUTPUT
 
       - name: Build and push Docker image 🐳
         id: push
         uses: docker/build-push-action@v5
         with:
-          context: .
           file: ./docker/Dockerfile.backend
           push: true
           tags: ewr.vultrcr.com/${{ steps.meta.outputs.tags }}
@@ -57,17 +52,6 @@ jobs:
           printf $KUBE_CONFIG >> ${HOME}/.kube/config
         env:
           KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
-
-      # - name: Use context 🌎
-      #   run: kubectl config use-context octobay-api
-
-      # To do:
-      # Split kubernetes file in multiple files and add to k8s folder
-      # - name: Deploy to K8S 
-      #   run: kubectl apply -f k8s/
-      
-      # - name: Deploy to K8S ☸️
-      #   run: kubectl apply -f kubernetes.yml
 
       - name: Rollout restart K8S Application Pods ☸️
         uses: actions-hub/kubectl@master

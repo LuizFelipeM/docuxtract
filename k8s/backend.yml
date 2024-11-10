@@ -24,6 +24,9 @@ spec:
         - name: fastapi-app
           image: ewr.vultrcr.com/dltagg/docuxtract-backend:master
           imagePullPolicy: Always
+          envFrom:
+            - secretRef:
+                name: fastapi-backend-env
           ports:
             - containerPort: 8000
           resources:

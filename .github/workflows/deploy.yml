@@ -45,9 +45,10 @@ jobs:
         uses: actions/checkout@v4
         
       - name: Create kubeconfig 🔧
+          # echo ${{ secrets.KUBE_CONFIG }} | base64 --decode > ${HOME}/.kube/config
         run: |
           mkdir ${HOME}/.kube
-          echo ${{ secrets.KUBE_CONFIG }} | base64 --decode > ${HOME}/.kube/config
+          printf ${{ secrets.KUBE_C }} >> ${HOME}/.kube/config
 
       # - name: Use context 🌎
       #   run: kubectl config use-context octobay-api

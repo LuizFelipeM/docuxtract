@@ -24,9 +24,9 @@ jobs:
         with:
           images: dltagg/docuxtract-backend
         
-      - name: Generate UUID 🆔
-        id: generate-uuid
-        run: echo "uuid=$(uuidgen)" >> $GITHUB_OUTPUT
+      # - name: Generate UUID 🆔
+      #   id: generate-uuid
+      #   run: echo "uuid=$(uuidgen)" >> $GITHUB_OUTPUT
 
       - name: Build and push Docker image 🐳
         id: push
@@ -35,7 +35,7 @@ jobs:
           context: .
           file: ./docker/Dockerfile.backend
           push: true
-          tags: ewr.vultrcr.com/${{ steps.meta.outputs.tags }}-${{ steps.generate-uuid.outputs.uuid }}
+          tags: ewr.vultrcr.com/${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
   deploy:

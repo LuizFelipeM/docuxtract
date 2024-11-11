@@ -18,12 +18,13 @@ class S3Client:
 
     def __init__(self, config: S3Config) -> None:
         self._bucket = config.bucket
-        self._client = boto3.client(
-            "s3",
-            endpoint_url=config.url,
+        session = boto3.Session(
             aws_access_key_id=config.access_key,
             aws_secret_access_key=config.secret_access_key,
-            region_name=config.region,
+        )
+        self._client = session.client(
+            "s3",
+            endpoint_url=config.url,
             config=Config(signature_version="s3v4"),
         )
 

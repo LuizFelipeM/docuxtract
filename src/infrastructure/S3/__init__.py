@@ -21,6 +21,7 @@ class S3Client:
         session = boto3.Session(
             aws_access_key_id=config.access_key,
             aws_secret_access_key=config.secret_access_key,
+            region_name=config.region,
         )
         self._client = session.client(
             "s3",

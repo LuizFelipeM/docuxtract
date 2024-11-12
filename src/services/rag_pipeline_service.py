@@ -31,7 +31,7 @@ class RAGPipelineService:
             key = await self._files_service.upload_file(name, ext, file_content)
 
             # Extract file markup data
-            extracted_content = await extract_markup(file.content_type, file_content)
+            extracted_content = extract_markup(file.content_type, file_content)
 
             # Process extracted markup data
             extracted_text = extracted_content.decode("utf-8")

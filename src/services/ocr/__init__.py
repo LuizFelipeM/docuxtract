@@ -1,17 +1,28 @@
-from io import BytesIO
-from PIL import Image
-import pytesseract
+from ...enums.ocr_file_type import OCRFileType
+from ...dtos.ocr_file_dto import OCRFileDto
+from .strategies.image_strategy import ImageStrategy
+from .strategies.pdf_strategy import PDFStrategy
+from .strategies.docx_strategy import DOCXStrategy
+from .ocr_file_handler_context import OCRFileHandlerContext
 
 
-async def extract_markup(content_type: str, content: bytes) -> bytes:
-    try:
-        if content_type.startswith("text/"):
-            return content
+context = OCRFileHandlerContext()
 
-        if content_type.startswith("image/"):
-            image = Image.open(BytesIO(content))
-            return pytesseract.image_to_alto_xml(image)
 
-        raise f"File type {content_type} isn't supported"
-    except Exception as ex:
-        raise ex
+def extract_markup(content_type: str, content: bytes) -> bytes:
+    content_subtype = content_type.split("/")[-1]
+    type: OCRFileType = None
+
+    if content_type.startswith("image"):
+        type = OCRFileType[content_subtype.upper()]
+        context.strategy = ImageStrategy()
+
+    match content_subtype:
+        case "pdf":
+            type = OCRFileType.PDF
+            context.strategy = PDFStrategy()
+        case "vnd.openxmlformats-officedocument.wordprocessingml.document":
+            type = OCRFileType.DOCX
+            context.strategy = DOCXStrategy()
+
+    return context.extract_data(OCRFileDto(content=content, type=type))

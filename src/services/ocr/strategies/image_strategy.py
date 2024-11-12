@@ -4,7 +4,8 @@ import tempfile
 from io import BytesIO
 
 from ....logger import logger
-from ....dtos.ocr_file_dto import OCRFileDto, OCRFileType
+from ....enums.ocr_file_type import OCRFileType
+from ....dtos.ocr_file_dto import OCRFileDto
 from ..ocr_file_handler_strategy import OCRFileHandlerStrategy
 from ..extract_text_with_tesseract import extract_text_with_tesseract
 from ..preprocess_image import preprocess_image

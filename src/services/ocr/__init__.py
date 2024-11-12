@@ -1,4 +1,5 @@
-from ...dtos.ocr_file_dto import OCRFileDto, OCRFileType
+from ...enums.ocr_file_type import OCRFileType
+from ...dtos.ocr_file_dto import OCRFileDto
 from .strategies.image_strategy import ImageStrategy
 from .strategies.pdf_strategy import PDFStrategy
 from .strategies.docx_strategy import DOCXStrategy

@@ -39,7 +39,7 @@ async def ocr_pipeline(
     """
     Run only the OCR tool and return OCR processing.
     """
-    return (await extract_markup(file.content_type, await file.read())).decode("utf-8")
+    return extract_markup(file.content_type, await file.read()).decode("utf-8")
 
 
 @router.post(

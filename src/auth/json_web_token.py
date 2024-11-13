@@ -44,5 +44,6 @@ class JsonWebToken:
             audience=self.auth0_audience,
             issuer=self.auth0_issuer_url,
             leeway=30,
+            options={"verify_iat": False},
         )
         return payload

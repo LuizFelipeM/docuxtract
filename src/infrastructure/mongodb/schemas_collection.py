@@ -1,10 +1,18 @@
 from beanie import PydanticObjectId
 from src.entities.schema_entity import SchemaEntity
+from src.views.option_view import OptionView
 
 
 class SchemasCollection:
     async def get_all(self, user_id: str) -> list[SchemaEntity]:
         return await SchemaEntity.find_many(SchemaEntity.user == user_id).to_list()
+
+    async def get_all_as_options(self, user_id: str) -> list[OptionView]:
+        return (
+            await SchemaEntity.find_many(SchemaEntity.user == user_id)
+            .project(OptionView)
+            .to_list()
+        )
 
     async def insert(self, schema: SchemaEntity) -> str:
         return (await schema.insert()).id

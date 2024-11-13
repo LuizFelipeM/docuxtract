@@ -24,10 +24,10 @@ def interpret_text(
 
     prog = LLMTextCompletionProgram.from_defaults(
         output_parser=PydanticOutputParser(output_cls=output_cls),
-        prompt_template_str="""
-        You are responsible for extracting the required query from an XML file and output the results as a JSON {json_schema}\
-        XML: {xml}\
-        {query}
+        prompt_template_str="""Você é responsável por extrair desse arquivo XML as informações solicitadas e retornar os resultados em JSON {json_schema}\
+        Informações necessárias: {query}\
+        Arquivo XML:\
+        {xml}
         """,
         llm=Ollama(
             model=model,
@@ -42,7 +42,7 @@ def interpret_text(
     json_schema = ""
     if prompt_json_schema:
         json_schema = f"""
-        based on the following JSON schema:\
+        de acordo com o modelo:\
         {json.dumps(output_cls.model_json_schema(), indent=2)}
         """
 

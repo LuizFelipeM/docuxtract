@@ -13,7 +13,7 @@ from src.logger import logger
 from llama_index.llms.ollama import Ollama
 
 router = APIRouter(
-    prefix="/pipelines", tags=["Pipelines"], dependencies=[Depends(validate_token)]
+    prefix="/pipelines", tags=["Pipelines"]  # , dependencies=[Depends(validate_token)]
 )
 
 
@@ -74,10 +74,9 @@ async def ocr_pipeline(
     },
 )
 async def rag_pipeline(
-    n: str = Query(
-        ..., description="The name of the output schema to be used in the pipeline."
+    id: str = Query(
+        ..., description="The output schema's ID to be used in the pipeline."
     ),
-    q: str = Query(None, description="The query to be made to the pipeline."),
     file: UploadFile = File(
         ..., description="File to be processed through the RAG pipeline."
     ),
@@ -86,15 +85,9 @@ async def rag_pipeline(
     Process the document with the specific schema through the RAG Pipeline.
     """
     try:
-        if not n or not (await schemas_collection.has(n)):
-            return JSONResponse(
-                status_code=400,
-                content={"message": f"Schema {n} not found or not created"},
-            )
+        entity = await schemas_collection.find_by_id(id)
 
-        entity = await schemas_collection.find_by_name(n)
-
-        result = await rag_pipeline_service.process(file, entity.json_schema, query=q)
+        result = await rag_pipeline_service.process(file, entity.json_schema)
         return JSONResponse(status_code=200, content=result.model_dump())
     except Exception as ex:
         logger.log(logging.ERROR, ex)

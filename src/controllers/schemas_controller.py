@@ -4,6 +4,8 @@ from beanie import PydanticObjectId
 from fastapi import APIRouter, Body, Depends, HTTPException, Path
 from fastapi.responses import JSONResponse
 
+from src.dtos.option_dto import OptionDto
+
 from ..auth.dependencies import get_current_user, validate_token
 from ..dtos.json_schema_dto import JsonSchemaDto
 from ..dtos.schema_dto import SchemaDto
@@ -54,6 +56,21 @@ async def get_schemas(
             await schemas_collection.get_all(current_user),
         )
         return list(schemaDtos)
+    except Exception as ex:
+        logger.log(logging.ERROR, ex)
+        raise HTTPException(status_code=500, detail=f"{str(ex)}")
+
+
+@router.get("/options")
+async def get_schemas_as_options(
+    current_user: str = Depends(get_current_user),
+) -> list[OptionDto]:
+    try:
+        options = map(
+            lambda schema: OptionDto(id=str(schema.id), label=schema.name),
+            await schemas_collection.get_all_as_options(current_user),
+        )
+        return list(options)
     except Exception as ex:
         logger.log(logging.ERROR, ex)
         raise HTTPException(status_code=500, detail=f"{str(ex)}")

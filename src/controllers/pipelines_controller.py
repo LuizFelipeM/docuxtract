@@ -13,8 +13,7 @@ from src.logger import logger
 from llama_index.llms.ollama import Ollama
 
 router = APIRouter(
-    prefix="/pipelines",
-    tags=["Pipelines"],  # dependencies=[Depends(validate_token)]
+    prefix="/pipelines", tags=["Pipelines"], dependencies=[Depends(validate_token)]
 )
 
 

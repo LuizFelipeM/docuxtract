@@ -25,7 +25,7 @@ async def download_file(key: str) -> StreamingResponse:
         raise HTTPException(status_code=500, detail=str(ex))
 
 
-@router.post("/", status_code=204)
+@router.post("", status_code=204)
 async def upload_file(file: UploadFile) -> None:
     try:
         # _, ext = os.path.splitext(file.filename)

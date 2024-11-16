@@ -42,7 +42,7 @@ def validate_schema(
         raise HTTPException(status_code=400, detail=f"Invalid schema\n{str(ex)}")
 
 
-@router.get("/")
+@router.get("")
 async def get_schemas(
     current_user: str = Depends(get_current_user),
 ) -> list[SchemaDto]:
@@ -99,7 +99,7 @@ async def get_schemas(
         raise HTTPException(status_code=500, detail=f"{str(ex)}")
 
 
-@router.put("/", status_code=204)
+@router.put("", status_code=204)
 async def create_or_update_schema(
     current_user: str = Depends(get_current_user),
     schema: SchemaDto = Body(..., description="The schema to be created or updated."),

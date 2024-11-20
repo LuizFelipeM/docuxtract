@@ -20,11 +20,13 @@ spec:
             - containerPort: 11434
           resources:
             requests:
-              memory: "512Mi"
-              cpu: "500m"
+              memory: "16Gi"
+              cpu: "1000m"
+              nvidia.com/gpu: 1 # Request 1 GPU
             limits:
               memory: "20Gi"
               cpu: "1000m"
+              nvidia.com/gpu: 1 # Request 1 GPU
 
 ---
 apiVersion: v1

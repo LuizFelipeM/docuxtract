@@ -51,6 +51,7 @@ async def get_schemas(
             lambda schema: SchemaDto(
                 id=str(schema.id),
                 name=schema.name,
+                language=schema.language,
                 json_schema=JsonSchemaDto(**schema.json_schema.model_dump()),
             ),
             await schemas_collection.get_all(current_user),
@@ -92,6 +93,7 @@ async def get_schemas(
         return SchemaDto(
             id=str(schema.id),
             name=schema.name,
+            language=schema.language,
             json_schema=JsonSchemaDto(**schema.json_schema.model_dump()),
         )
     except Exception as ex:
@@ -119,6 +121,7 @@ async def create_or_update_schema(
             id=PydanticObjectId(schema.id),
             user=current_user,
             name=schema.name,
+            language=schema.language,
             json_schema=json_schema_entity,
         )
 

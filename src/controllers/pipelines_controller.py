@@ -2,7 +2,6 @@ import logging
 
 import os
 from typing import Any
-from uuid import uuid4
 from fastapi import APIRouter, Depends, File, Query, UploadFile
 from fastapi.responses import JSONResponse
 
@@ -13,7 +12,7 @@ from src.logger import logger
 from llama_index.llms.ollama import Ollama
 
 router = APIRouter(
-    prefix="/pipelines", tags=["Pipelines"]  # , dependencies=[Depends(validate_token)]
+    prefix="/pipelines", tags=["Pipelines"], dependencies=[Depends(validate_token)]
 )
 
 
@@ -87,7 +86,9 @@ async def rag_pipeline(
     try:
         entity = await schemas_collection.find_by_id(id)
 
-        result = await rag_pipeline_service.process(file, entity.json_schema)
+        result = await rag_pipeline_service.process(
+            file, entity.json_schema, language=entity.language
+        )
         return JSONResponse(status_code=200, content=result.model_dump())
     except Exception as ex:
         logger.log(logging.ERROR, ex)
@@ -95,20 +96,3 @@ async def rag_pipeline(
             status_code=500,
             content={"message": str(ex)},
         )
-
-
-@router.get("/ask")
-async def ask(
-    q: str = Query(None, description="The query to be made to the pipeline.")
-) -> str:
-    try:
-        llm = Ollama(
-            model="mistral:7b",
-            base_url=os.getenv("OLLAMA_HOST"),
-            temperature=0,
-            request_timeout=360.0,
-        )
-        return llm.complete(q).text
-    except Exception as ex:
-        logger.log(logging.ERROR, ex)
-        return str(ex)

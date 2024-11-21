@@ -1,6 +1,5 @@
 import os
 import logging
-from uuid import UUID
 from fastapi import UploadFile
 from pydantic import BaseModel
 
@@ -21,7 +20,12 @@ class RAGPipelineService:
         self._s3_client = s3_client
 
     async def process(
-        self, file: UploadFile, schema: JsonSchemaEntity, *, query: str = None
+        self,
+        file: UploadFile,
+        schema: JsonSchemaEntity,
+        *,
+        query: str = None,
+        language: str = None,
     ) -> BaseModel:
         try:
             file_content = await file.read()
@@ -56,6 +60,7 @@ class RAGPipelineService:
                 metadata,
                 query=query,
                 prompt_json_schema=True,
+                language=language,
             )
 
             # Log LLM output

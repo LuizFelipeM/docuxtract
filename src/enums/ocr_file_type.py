@@ -7,6 +7,7 @@ class OCRFileType(Enum):
     """
 
     JPG = 0
+    JPEG = 0
     PNG = 1
     TIFF = 3
     WEBP = 4
